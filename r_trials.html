@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title></title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="r_trials_files/reveal.js-3.3.0/css/reveal.css"/>
+
+
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+<link rel="stylesheet" href="r_trials_files/reveal.js-3.3.0/css/theme/simple.css" id="theme">
+
+
+  <!-- some tweaks to reveal css -->
+  <style type="text/css">
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.5em;  }
+    .reveal h3 { font-size: 1.25em;	}
+    .reveal h4 { font-size: 1em;	}
+
+    .reveal .slides>section,
+    .reveal .slides>section>section {
+      padding: 0px 0px;
+    }
+
+
+
+    .reveal table {
+      border-width: 1px;
+      border-spacing: 2px;
+      border-style: dotted;
+      border-color: gray;
+      border-collapse: collapse;
+      font-size: 0.7em;
+    }
+
+    .reveal table th {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      font-weight: bold;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal table td {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+  </style>
+
+    <style type="text/css">code{white-space: pre;}</style>
+
+    <link rel="stylesheet" href="white-helv.css"/>
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'r_trials_files/reveal.js-3.3.0/css/print/pdf.css' : 'r_trials_files/reveal.js-3.3.0/css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+    <!--[if lt IE 9]>
+    <script src="r_trials_files/reveal.js-3.3.0/lib/js/html5shiv.js"></script>
+    <![endif]-->
+
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+
+<section id="-r----" class="slide level2">
+<h1>Использование R в ходе клинических исследований</h1>
+<p>Андрей Огурцов</p>
+<p>ПАО НПЦ «Борщаговский химико-фармацевтический завод»</p>
+<p><img src="pics/logo.png" alt="logo" /></p>
+</section>
+<section id="--" class="slide level2">
+<h1>Особенности фармацевтической отрасли</h1>
+<p>Законодательное регулирование:</p>
+<ul>
+<li><p>США - FDA</p></li>
+<li><p>Европа - EMA, ICH</p></li>
+<li><p>Украина - «Державний Експертний Центр МОЗ»</p></li>
+</ul>
+<p>Мы руководствуемся рекомендациями «International Council for Harmonisation of Technical Requirements for Pharmaceuticals for Human Use (ICH)».</p>
+<p>Вопросы статистики и обработки данных рассмотрены в <em>E9 Statistical Principles for Clinical Trials</em> и <em>Guideline on the Investigation of Bioequivalence</em>.</p>
+</section>
+<section id="---" class="slide level2">
+<h1>Особенности фармацевтической отрасли (продолжение)</h1>
+<ul>
+<li><p>Open Source-решения не запрещаются, но и не пропагандируются</p></li>
+<li><p>FDA в 2012 г. официально <a href="http://blog.revolutionanalytics.com/2012/06/fda-r-ok.html">одобрило</a> использование R при условии воспроизводимости анализа и результатов</p></li>
+<li><p>Коммерческое ПО (SAS, Stata, WinNonlin) по-прежнему преобладает</p></li>
+</ul>
+</section>
+<section id="-r" class="slide level2">
+<h1>Применение R</h1>
+<ul>
+<li><p>Задачи машинного обучения - редкость (<strong>xgboost</strong> не нужен)</p></li>
+<li><p>Крайне важен этап планирования: расчет размера выборки, рандомизация, (суррогатные) конечные точки</p></li>
+<li><p>Статистический анализ требует проверки предпосылок используемых критериев</p></li>
+<li><p>Иногда нужны относительно экзотические критерии</p></li>
+<li><p>Предпочтительнее использовать консервативные методы (например, поправка Бонферрони для борьбы с эффектом множественных сравнений)</p></li>
+</ul>
+</section>
+<section id="--" class="slide level2">
+<h1>Расчет размера выборки</h1>
+<ul>
+<li><p>Зависит от типа и целей исследования (неуступающая/превышающая эффективность, терапевтическая эквивалентность, биоэквивалентность), от конечных точек, от количества групп</p></li>
+<li><p>В пакете <strong>TrialSize</strong> реализовано более 80 функций для расчетов</p></li>
+<li><p>Но можно посчитать и вручную, в том числе с помощью бутстрепа (если есть данные пилотного исследования)</p></li>
+<li><p>Лучше быть пессимистом и предусмотреть выбывание пациентов</p></li>
+</ul>
+</section>
+<section id="--1" class="slide level2">
+<h1>Пример расчета 1</h1>
+<p>Cравнение двух средних арифметических в исследовании на неуступающую/превышающую эффективность (разность средних равна 5, стандартное отклонение равно 10):</p>
+<p><span class="math display">\[n = \frac{2(z_{\alpha} + z_{\beta})^{2} \sigma^{2}}{ (\epsilon - \delta)^{2}}\]</span></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(TrialSize)
+n &lt;-<span class="st"> </span><span class="kw">TwoSampleMean.NIS</span>(<span class="dt">alpha =</span> <span class="fl">0.025</span>, 
+                       <span class="dt">beta =</span> <span class="fl">0.2</span>, 
+                       <span class="dt">sigma =</span> <span class="dv">10</span>, 
+                       <span class="dt">k =</span> <span class="dv">1</span>, 
+                       <span class="dt">delta =</span> <span class="dv">0</span>, 
+                       <span class="dt">margin =</span> <span class="dv">5</span>)
+<span class="kw">ceiling</span>(n)</code></pre></div>
+<pre><code>## [1] 63</code></pre>
+<p>Предполагается нормальное распределение!</p>
+</section>
+<section id="--2" class="slide level2">
+<h1>Пример расчета 2</h1>
+<p>Для исследования биоэквивалентности:</p>
+<p><span class="math display">\[n = \frac{(z_{\alpha} + z_{\beta /2})^{2} \sigma_{1,1}^{2}}{2 (\delta - \left | \epsilon  \right |)^{2}}\]</span></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sampleSize &lt;-<span class="st"> </span>function(sigma, epsilon, pwr) {
+    <span class="kw">ceiling</span>((<span class="kw">qnorm</span>(<span class="fl">0.05</span>, <span class="dt">lower.tail =</span> <span class="ot">FALSE</span>) +<span class="st"> </span>
+<span class="st">            </span><span class="kw">qnorm</span>((<span class="dv">1</span> -<span class="st"> </span>pwr) /<span class="st"> </span><span class="dv">2</span>, <span class="dt">lower.tail =</span> <span class="ot">FALSE</span>))^<span class="dv">2</span> *
+<span class="st">            </span>(sigma ^<span class="st"> </span><span class="dv">2</span>) /<span class="st"> </span>(<span class="dv">2</span> *<span class="st"> </span>(<span class="fl">0.223</span> -<span class="st"> </span>epsilon) ^<span class="st"> </span><span class="dv">2</span>))}
+<span class="kw">sampleSize</span>(<span class="dt">sigma =</span> <span class="fl">0.28</span>, <span class="dt">epsilon =</span> <span class="fl">0.05</span>, <span class="dt">pwr =</span> <span class="fl">0.80</span>)</code></pre></div>
+<pre><code>## [1] 12</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">PowerTOST::<span class="kw">CVfromCI</span>(<span class="dt">lower =</span> <span class="fl">0.91</span>, <span class="dt">upper =</span> <span class="fl">1.15</span>, <span class="dt">n =</span> <span class="dv">21</span>, 
+                    <span class="dt">design =</span> <span class="st">&quot;2x2&quot;</span>, <span class="dt">alpha =</span> <span class="fl">0.05</span>)</code></pre></div>
+<pre><code>## [1] 0.2217306</code></pre>
+</section>
+<section id="bootstrap" class="slide level2">
+<h1>Bootstrap</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">100500</span>)
+df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">group =</span> <span class="kw">rep</span>(<span class="kw">c</span>(<span class="st">&quot;plac&quot;</span>, <span class="st">&quot;treat&quot;</span>), <span class="dt">each=</span><span class="dv">10</span>),
+                 <span class="dt">pressure =</span> <span class="kw">c</span>(<span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dv">140</span>, <span class="dv">20</span>) +<span class="st"> </span>
+<span class="st">                                  </span><span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dv">150</span>, <span class="dv">30</span>), 
+                              <span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dv">135</span>, <span class="dv">30</span>) +<span class="st"> </span>
+<span class="st">                                  </span><span class="kw">rnorm</span>(<span class="dv">10</span>, <span class="dv">125</span>, <span class="dv">40</span>))/<span class="dv">2</span>)
+
+<span class="kw">library</span>(purrr)
+<span class="kw">library</span>(psych)
+res &lt;-<span class="st"> </span><span class="kw">split</span>(df, df$group) %&gt;%<span class="st"> </span>
+<span class="st">    </span><span class="kw">map</span>(~<span class="st"> </span><span class="kw">describe</span>(.$pressure)) %&gt;%<span class="st"> </span>
+<span class="st">    </span><span class="kw">do.call</span>(rbind, .)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">n</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">median</th>
+<th style="text-align: right;">trimmed</th>
+<th style="text-align: right;">mad</th>
+<th style="text-align: right;">min</th>
+<th style="text-align: right;">max</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">plac</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">141.3438</td>
+<td style="text-align: right;">18.99318</td>
+<td style="text-align: right;">141.3213</td>
+<td style="text-align: right;">140.9249</td>
+<td style="text-align: right;">21.88146</td>
+<td style="text-align: right;">114.16147</td>
+<td style="text-align: right;">171.8774</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">treat</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">128.3154</td>
+<td style="text-align: right;">16.66162</td>
+<td style="text-align: right;">134.3372</td>
+<td style="text-align: right;">128.9952</td>
+<td style="text-align: right;">15.51537</td>
+<td style="text-align: right;">99.62615</td>
+<td style="text-align: right;">151.5669</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="bootstrap-1" class="slide level2">
+<h1>Bootstrap</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">shapiro.test</span>(df[df$group ==<span class="st"> &quot;plac&quot;</span>, <span class="dv">2</span>])</code></pre></div>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  df[df$group == &quot;plac&quot;, 2]
+## W = 0.94746, p-value = 0.6386</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="kw">TwoSampleMean.NIS</span>(<span class="dt">alpha =</span> <span class="fl">0.025</span>, 
+                       <span class="dt">beta =</span> <span class="fl">0.2</span>, 
+                       <span class="dt">sigma =</span> 
+                         <span class="kw">sqrt</span>(res$sd[<span class="dv">2</span>]^<span class="dv">2</span> +<span class="st"> </span>res$sd[<span class="dv">1</span>]^<span class="dv">2</span>), 
+                       <span class="dt">k =</span> <span class="dv">1</span>, 
+                       <span class="dt">delta =</span> <span class="dv">0</span>, 
+                       <span class="dt">margin =</span> res$mean[<span class="dv">2</span>] -<span class="st"> </span>res$mean[<span class="dv">1</span>])
+<span class="kw">ceiling</span>(n)</code></pre></div>
+<pre><code>## [1] 60</code></pre>
+</section>
+<section id="bootstrap-2" class="slide level2">
+<h1>Bootstrap</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">500</span>)
+new &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">group =</span> <span class="kw">rep</span>(<span class="kw">c</span>(<span class="st">&quot;plac&quot;</span>, <span class="st">&quot;treat&quot;</span>), <span class="dt">each=</span><span class="dv">60</span>),
+                  <span class="dt">pressure =</span> <span class="kw">c</span>(
+                      <span class="kw">sample</span>(df[df$group ==<span class="st"> &quot;plac&quot;</span>, <span class="dv">2</span>], 
+                             <span class="dv">60</span>, <span class="dt">replace =</span> <span class="ot">TRUE</span>), 
+                      <span class="kw">sample</span>(df[df$group ==<span class="st"> &quot;treat&quot;</span>, <span class="dv">2</span>], 
+                             <span class="dv">60</span>, <span class="dt">replace =</span> <span class="ot">TRUE</span>)))
+<span class="kw">shapiro.test</span>(new[new$group ==<span class="st"> &quot;plac&quot;</span>, <span class="dv">2</span>])</code></pre></div>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  new[new$group == &quot;plac&quot;, 2]
+## W = 0.88508, p-value = 3.923e-05</code></pre>
+</section>
+<section id="bootstrap-3" class="slide level2">
+<h1>Bootstrap</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(broom)
+<span class="kw">t.test</span>(pressure ~<span class="st"> </span>group, <span class="dt">data =</span> new) %&gt;%<span class="st"> </span>
+<span class="st">    </span><span class="kw">tidy</span>() %&gt;%<span class="st"> </span><span class="kw">kable</span>()</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">estimate</th>
+<th style="text-align: right;">estimate1</th>
+<th style="text-align: right;">estimate2</th>
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p.value</th>
+<th style="text-align: right;">parameter</th>
+<th style="text-align: right;">conf.low</th>
+<th style="text-align: right;">conf.high</th>
+<th style="text-align: left;">method</th>
+<th style="text-align: left;">alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">7.410289</td>
+<td style="text-align: right;">139.1937</td>
+<td style="text-align: right;">131.7834</td>
+<td style="text-align: right;">2.371056</td>
+<td style="text-align: right;">0.0194634</td>
+<td style="text-align: right;">110.8365</td>
+<td style="text-align: right;">1.217175</td>
+<td style="text-align: right;">13.6034</td>
+<td style="text-align: left;">Welch Two Sample t-test</td>
+<td style="text-align: left;">two.sided</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">wilcox.test</span>(pressure ~<span class="st"> </span>group, <span class="dt">data =</span> new) %&gt;%<span class="st"> </span>
+<span class="st">    </span><span class="kw">tidy</span>() %&gt;%<span class="st"> </span><span class="kw">kable</span>()</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p.value</th>
+<th style="text-align: left;">method</th>
+<th style="text-align: left;">alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2086</td>
+<td style="text-align: right;">0.1331856</td>
+<td style="text-align: left;">Wilcoxon rank sum test with continuity correction</td>
+<td style="text-align: left;">two.sided</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="bootstrap-4" class="slide level2">
+<h1>Bootstrap</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">reps_expr &lt;-<span class="st"> </span><span class="kw">quote</span>(
+    <span class="kw">data.frame</span>(<span class="dt">group =</span> <span class="kw">rep</span>(<span class="kw">c</span>(<span class="st">&quot;plac&quot;</span>, <span class="st">&quot;treat&quot;</span>), <span class="dt">each=</span><span class="dv">60</span>),
+                  <span class="dt">pressure =</span> <span class="kw">c</span>(
+                      <span class="kw">sample</span>(df[df$group ==<span class="st"> &quot;plac&quot;</span>, <span class="dv">2</span>], 
+                             <span class="dv">60</span>, <span class="dt">replace =</span> <span class="ot">TRUE</span>), 
+                      <span class="kw">sample</span>(df[df$group ==<span class="st"> &quot;treat&quot;</span>, <span class="dv">2</span>], 
+                             <span class="dv">60</span>, <span class="dt">replace =</span> <span class="ot">TRUE</span>))))
+
+reps &lt;-<span class="st"> </span><span class="kw">replicate</span>(<span class="dv">1000</span>, <span class="kw">eval</span>(reps_expr), <span class="dt">simplify =</span> <span class="ot">FALSE</span>)
+p_vals &lt;-<span class="st"> </span><span class="kw">map_dbl</span>(
+    reps, ~<span class="kw">wilcox.test</span>(pressure~group, <span class="dt">data =</span> .x)$p.value)
+<span class="kw">mean</span>(p_vals &lt;<span class="st"> </span><span class="fl">0.05</span>)</code></pre></div>
+<pre><code>## [1] 0.907</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p_vals &lt;-<span class="st"> </span><span class="kw">map_dbl</span>(
+    reps, ~<span class="kw">t.test</span>(pressure~group, <span class="dt">data =</span> .x)$p.value)
+<span class="kw">mean</span>(p_vals &lt;<span class="st"> </span><span class="fl">0.05</span>)</code></pre></div>
+<pre><code>## [1] 0.992</code></pre>
+</section>
+<section id="-boot" class="slide level2">
+<h1>Пакет boot</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(boot)
+
+medDif &lt;-<span class="st"> </span>function(data, indices) {
+    d &lt;-<span class="st"> </span>data[indices, ] 
+    res &lt;-<span class="st"> </span><span class="kw">median</span>(d[d$group ==<span class="st"> &quot;treat&quot;</span>, <span class="dv">2</span>]) -<span class="st"> </span>
+<span class="st">           </span><span class="kw">median</span>(d[d$group ==<span class="st"> &quot;plac&quot;</span>, <span class="dv">2</span>])
+    <span class="kw">return</span>(res)
+}
+
+results &lt;-<span class="st"> </span><span class="kw">boot</span>(<span class="dt">data =</span> new, 
+                <span class="dt">statistic =</span> medDif, 
+                <span class="dt">R =</span> <span class="dv">1000</span>,
+                <span class="dt">strata =</span> new$group)</code></pre></div>
+</section>
+<section id="-boot-1" class="slide level2">
+<h1>Пакет boot</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(results)</code></pre></div>
+<p><img src="r_trials_files/figure-revealjs/unnamed-chunk-11-1.png" width="768" /></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">boot.ci</span>(results, <span class="dt">type =</span> <span class="st">&quot;basic&quot;</span>)</code></pre></div>
+<pre><code>## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
+## Based on 1000 bootstrap replicates
+## 
+## CALL : 
+## boot.ci(boot.out = results, type = &quot;basic&quot;)
+## 
+## Intervals : 
+## Level      Basic         
+## 95%   ( 4.190, 28.967 )  
+## Calculations and Intervals on Original Scale</code></pre>
+</section>
+<section id="-boot-2" class="slide level2">
+<h1>Пакет boot</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">boot.ci</span>(results, <span class="dt">type =</span> <span class="st">&quot;basic&quot;</span>)</code></pre></div>
+<pre><code>## BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
+## Based on 1000 bootstrap replicates
+## 
+## CALL : 
+## boot.ci(boot.out = results, type = &quot;basic&quot;)
+## 
+## Intervals : 
+## Level      Basic         
+## 95%   ( 4.190, 28.967 )  
+## Calculations and Intervals on Original Scale</code></pre>
+</section>
+<section class="slide level2">
+<h1>Рандомизация</h1>
+<p>Рандомизация - случайное распределение субъектов в группы для минимизации систематической погрешности.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(blockrand)
+
+rand &lt;-<span class="st"> </span><span class="kw">blockrand</span>(<span class="dt">n =</span> <span class="dv">240</span>, 
+                  <span class="dt">num.levels =</span> <span class="dv">3</span>, 
+                  <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>, <span class="st">&quot;P&quot;</span>),
+                  <span class="dt">block.sizes =</span> <span class="kw">rep</span>(<span class="dv">10</span>, <span class="dv">8</span>))</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">id</th>
+<th style="text-align: left;">block.id</th>
+<th style="text-align: right;">block.size</th>
+<th style="text-align: left;">treatment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">B</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">A</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">6</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: left;">B</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="-" class="slide level2">
+<h1>Схема рандомизации</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rand_txt &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">text =</span> <span class="kw">c</span>(<span class="st">&quot;Study code XXXXX&quot;</span>, 
+                          <span class="st">&quot;Patient: %ID%&quot;</span> , 
+                          <span class="st">&quot;Treatment: %TREAT%&quot;</span>),
+                          <span class="dt">col =</span> <span class="kw">c</span>(<span class="st">&quot;black&quot;</span>,<span class="st">&quot;black&quot;</span>,<span class="st">&quot;red&quot;</span>),
+                          <span class="dt">font =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">4</span>))
+<span class="kw">plotblockrand</span>(rand, <span class="st">&quot;rand.pdf&quot;</span>,
+              <span class="dt">top =</span> rand_txt,
+              <span class="dt">middle =</span> <span class="st">&quot;SPONSOR&quot;</span>,
+              <span class="dt">bottom =</span> <span class="st">&quot;Phone: +380100500&quot;</span>,
+              <span class="dt">cut.marks =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">4</span>)</code></pre></div>
+<p><img src="pics/pic1.jpg" alt="pic1" /></p>
+</section>
+<section id="-" class="slide level2">
+<h1>Исследование биоэквивалентности</h1>
+<ul>
+<li><p>Сравниваются фармакокинетические параметры тестового (T) и референтного (R) препаратов</p></li>
+<li><p>Перекрестный дизайн: 2 препарата, 2 периода, 2 последовательности (2х2х2)</p></li>
+<li><p>Критерий эквивалентности: 90% доверительный интервал для <em>отношений средних геометрических</em> C<sub>max</sub> и AUC<sub>0-t</sub> находится в пределах 0.8000–1.2500 (80.00–125.00%)</p></li>
+</ul>
+<p><img src="pics/pic2.jpg" alt="pic1" /></p>
+</section>
+<section id="--" class="slide level2">
+<h1>Данные для анализа</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">data &lt;-<span class="st"> </span><span class="kw">read.table</span>(<span class="st">&quot;testdata.txt&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;</span><span class="ch">\t</span><span class="st">&quot;</span>, 
+                   <span class="dt">dec =</span> <span class="st">&quot;,&quot;</span>, <span class="dt">header =</span> <span class="ot">TRUE</span>)
+<span class="kw">kable</span>(<span class="kw">head</span>(data))</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">subj</th>
+<th style="text-align: right;">seq</th>
+<th style="text-align: right;">prd</th>
+<th style="text-align: left;">drug</th>
+<th style="text-align: right;">time</th>
+<th style="text-align: right;">conc</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">R</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">R</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">36.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">R</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">125.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">R</td>
+<td style="text-align: right;">0.75</td>
+<td style="text-align: right;">567.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">R</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">932.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">R</td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">1343.0</td>
+</tr>
+</tbody>
+</table>
+<p>AUC<sub>0-t</sub> вычисляется методом трапеций, все фармакокинетические параметры перед анализом логарифмируются.</p>
+</section>
+<section id="-auc0-t" class="slide level2">
+<h1>Расчет AUC<sub>0-t</sub></h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">aucCalc &lt;-<span class="st"> </span>function(conc, time) {
+    auc &lt;-<span class="st"> </span><span class="kw">numeric</span>(<span class="kw">length</span>(time)-<span class="dv">1</span>) 
+    for (i in <span class="dv">2</span>:<span class="kw">length</span>(time)) {
+        auc[i<span class="dv">-1</span>] &lt;-<span class="st"> </span><span class="fl">0.5</span> *<span class="st"> </span>(conc[i] +<span class="st"> </span>conc[i -<span class="st"> </span><span class="dv">1</span>]) *<span class="st"> </span>
+<span class="st">                          </span>(time[i] -<span class="st"> </span>time[i -<span class="st"> </span><span class="dv">1</span>])
+    }
+    <span class="kw">return</span>(<span class="kw">sum</span>(auc, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>))
+}</code></pre></div>
+</section>
+<section class="slide level2">
+<h1>Визуализация</h1>
+<p><img src="r_trials_files/figure-revealjs/unnamed-chunk-20-1.png" width="768" /></p>
+</section>
+<section id="--" class="slide level2">
+<h1>Смешанная линейная модель</h1>
+<p>Линейная модель с фиксированными и случайными эффектами имеет вид</p>
+<p><span class="math display">\[ y = X \beta + Zb + \epsilon\]</span></p>
+<p>Реализация в R - пакет <strong>nlme</strong>, функция <code>lme()</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(nlme)
+results &lt;-<span class="st"> </span>data[data$time ==<span class="st"> </span><span class="dv">0</span>, <span class="kw">c</span>(<span class="dv">1</span>:<span class="dv">4</span>)]
+results$Cmax &lt;-<span class="st"> </span><span class="kw">tapply</span>(data$conc, data$subj2, 
+                       max, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)
+results$Cmax &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(results$Cmax)
+results$auc &lt;-<span class="st"> </span><span class="kw">tapply</span>(data$conc, data$subj2, 
+                      aucCalc, <span class="dt">time =</span> <span class="kw">unique</span>(data$time)) 
+results$auc &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(results$auc)
+
+model_Cmax &lt;-<span class="st"> </span><span class="kw">lme</span>(<span class="kw">log</span>(Cmax) ~<span class="st"> </span>drug +<span class="st"> </span>prd +<span class="st"> </span>seq, 
+                  <span class="dt">random =</span> ~<span class="dv">1</span>|subj, results)
+model_auc &lt;-<span class="st"> </span><span class="kw">lme</span>(<span class="kw">log</span>(auc) ~<span class="st"> </span>drug +<span class="st"> </span>prd+<span class="st"> </span>seq, 
+                 <span class="dt">random =</span> ~<span class="dv">1</span>|subj, results)</code></pre></div>
+</section>
+<section id="--" class="slide level2">
+<h1>Расчет доверительных интервалов</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ci.Cmax &lt;-<span class="st"> </span><span class="kw">intervals</span>(model_Cmax, <span class="dt">level =</span> <span class="fl">0.9</span>, 
+                     <span class="dt">which =</span> <span class="st">&quot;fixed&quot;</span>)
+ci.auc &lt;-<span class="st"> </span><span class="kw">intervals</span>(model_auc, <span class="dt">level =</span> <span class="fl">0.9</span>, 
+                    <span class="dt">which =</span> <span class="st">&quot;fixed&quot;</span>)
+ci1 &lt;-<span class="st"> </span><span class="kw">exp</span>(ci.Cmax$fixed[<span class="dv">2</span>, ]) *<span class="st"> </span><span class="dv">100</span>
+ci2 &lt;-<span class="st"> </span><span class="kw">exp</span>(ci.auc$fixed[<span class="dv">2</span>, ]) *<span class="st"> </span><span class="dv">100</span>
+ci1_2 &lt;-<span class="st"> </span><span class="kw">rbind</span>(ci1, ci2)
+<span class="kw">colnames</span>(ci1_2) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Нижняя граница 90% ДИ, %&quot;</span>, 
+                     <span class="st">&quot;Соотношение T/R, %&quot;</span>,
+                     <span class="st">&quot;Верхняя граница 90% ДИ, %&quot;</span>)
+<span class="kw">rownames</span>(ci1_2) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Cmax&quot;</span>, <span class="st">&quot;AUC(0-t)&quot;</span>)
+<span class="kw">kable</span>(ci1_2)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">Нижняя граница 90% ДИ, %</th>
+<th style="text-align: right;">Соотношение T/R, %</th>
+<th style="text-align: right;">Верхняя граница 90% ДИ, %</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Cmax</td>
+<td style="text-align: right;">97.58596</td>
+<td style="text-align: right;">106.23189</td>
+<td style="text-align: right;">115.6438</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AUC(0-t)</td>
+<td style="text-align: right;">78.80980</td>
+<td style="text-align: right;">98.12902</td>
+<td style="text-align: right;">122.1841</td>
+</tr>
+</tbody>
+</table>
+<p>Реализация в виде <strong>shiny</strong>-приложения: <a href="http://statist.shinyapps.io/bioeq" class="uri">http://statist.shinyapps.io/bioeq</a></p>
+</section>
+<section id="-bear" class="slide level2">
+<h1>Пакет bear</h1>
+<p><a href="http://pkpd.kmu.edu.tw/bear/" class="uri">http://pkpd.kmu.edu.tw/bear/</a></p>
+<p><img src="pics/bear.JPG" alt="bear" /></p>
+</section>
+<section class="slide level2">
+<h1>Инструкция</h1>
+<p><img src="pics/bear_setup.png" alt="bear_setup" /></p>
+</section>
+<section class="slide level2">
+<h1>Настройки</h1>
+<p><img src="pics/bb.JPG" alt="bb" /></p>
+</section>
+<section id="--" class="slide level2">
+<h1>Спасибо за внимание!</h1>
+<p>Презентация создана при помощи <strong>revealjs</strong></p>
+<p><a href="https://github.com/statist-bhfz/user_group_kiev" class="uri">https://github.com/statist-bhfz/user_group_kiev</a></p>
+</section>
+    </div>
+  </div>
+
+  <script src="r_trials_files/reveal.js-3.3.0/lib/js/head.min.js"></script>
+  <script src="r_trials_files/reveal.js-3.3.0/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Display the page number of the current slide
+        slideNumber: 'c/t',
+        // Push each slide change to the browser history
+        history: true,
+        // Vertical centering of slides
+        center: false,
+        // Transition style
+        transition: 'slide', // none/fade/slide/convex/concave/zoom
+        // Transition style for full page slide backgrounds
+        backgroundTransition: 'default', // none/fade/slide/convex/concave/zoom
+
+        // Optional reveal.js plugins
+        dependencies: [
+        ]
+      });
+    </script>
+  <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+      document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+
+<script>
+  (function() {
+    if (window.jQuery) {
+      Reveal.addEventListener( 'slidechanged', function(event) {  
+        window.jQuery(event.previousSlide).trigger('hidden');
+        window.jQuery(event.currentSlide).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+
+  </body>
+</html>
