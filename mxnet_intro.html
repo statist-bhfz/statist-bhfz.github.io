@@ -432,7 +432,7 @@ resnet &lt;- get_symbol(10)</code></pre>
 ## Model checkpoint saved to resnet-0003.params</code></pre>
 <p>В рабочей папке сохранились файлы <em>resnet-0001.params</em>, <em>resnet-0002.params</em>, <em>resnet-0002.params</em> и <em>resnet-symbol.json</em>. В них есть все необходимое, чтобы продолжить обучать модель. Загружаем модель после 3 эпох:</p>
 <pre class="r"><code>model &lt;- mx.model.load(&quot;resnet&quot;, 3)</code></pre>
-<p>Продолжаем обучение, уменьшив скорость обучения (<code>learning.rate = 0.03</code>)</p>
+<p>Продолжаем обучение, уменьшив скорость (<code>learning.rate = 0.03</code>):</p>
 <pre class="r"><code>model &lt;- mx.model.FeedForward.create(
   symbol             = model$symbol,
   X                  = train,
