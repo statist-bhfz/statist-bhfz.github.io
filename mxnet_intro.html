@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Deep learning с использованием языка R и библиотеки mxnet. Установка и начало работы</title>
+
+<script src="mxnet_intro_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="mxnet_intro_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="mxnet_intro_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="mxnet_intro_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="mxnet_intro_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="mxnet_intro_files/navigation-1.1/tabsets.js"></script>
+<link href="mxnet_intro_files/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="mxnet_intro_files/highlightjs-1.1/highlight.js"></script>
+<script src="mxnet_intro_files/htmlwidgets-0.8/htmlwidgets.js"></script>
+<script src="mxnet_intro_files/viz-0.3/viz.js"></script>
+<link href="mxnet_intro_files/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
+<script src="mxnet_intro_files/grViz-binding-0.9.0/grViz.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Deep learning с использованием языка R и библиотеки mxnet. Установка и начало работы</h1>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a>1. Вступление</a></li>
+<li><a href="#-cudacudnn">2. Установка CUDA/cuDNN</a></li>
+<li><a href="#-mxnet----r--python">3. Установка mxnet с интерфейсами для R и Python</a><ul>
+<li><a href="#---r">Установка пакета для R</a></li>
+<li><a href="#---python">Установка библиотеки для Python</a></li>
+</ul></li>
+<li><a href="#-">4. Подготовка данных</a></li>
+<li><a href="#---">5. Обучение сверточной нейронной сети</a><ul>
+<li><a href="#--">Итераторы для данных</a></li>
+<li><a href="#-">Архитектура нейросети</a></li>
+<li><a href="#-">Обучение модели</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div class="section level2">
+<h2>1. Вступление</h2>
+<p>Известно, что библиотеки для глубокого обучения (Deep learning) очень хорошо дружат с языком Python: например, библиотека <a href="https://keras.io/">Keras</a> написана на Python и может использовать в качестве бекенда <a href="http://deeplearning.net/software/theano/">Theano</a> (тоже на Python) или <a href="https://www.tensorflow.org/">Tensorflow</a> (C++/Python).</p>
+<p>Но пользователи R тоже не обделены возможностью обучать глубокие нейронные сети. Помимо недавно появившего <a href="https://rstudio.github.io/tensorflow/">интерфейса</a> для Tensorflow, существует не столь известная, но набирающая популярность библиотека <a href="https://github.com/dmlc/mxnet">mxnet</a>, написанная на C++ и укомплектованная интерфейсами и для R, и для Python (а также для Julia, Matlab, Scala и Javascript!). Данная библиотека обладает высокой производительностью и умеренным расходом памяти, умеет работать как на CPU, так и на GPU Nvidia, используя CUDA/cuDNN (причем можно обучаться сразу на нескольких видеокартах).</p>
+<p>Основным препятствием для ее освоения является очень своеобразно написанная и не всегда поддерживаемая в актуальном состоянии документация: если для Python она более-менее полная и последовательная, то в случае с R все плохо. <a href="http://mxnet.io/api/r/mxnet-r-reference-manual.pdf">MXNet R Reference Manual</a> является лишь списком функций и аргументов, подавляющее большинство примеров написаны с использованием Python, так что в R приходится действовать по аналогии и искать ответы в issues на Гитхабе. Это сообщение является попыткой слегка исправить ситуацию и создать руководство по установке и использованию <strong>mxnet</strong> в R. Возможно, будет и продолжение про более продвинутые темы.</p>
+</div>
+<div id="-cudacudnn" class="section level2">
+<h2>2. Установка CUDA/cuDNN</h2>
+<p>Используется Linux; предполагается, что R и RStudio уже установлены. Полезные руководства: <a href="http://guanghan.info/blog/en/my-works/building-our-personal-deep-learning-rig-gtx-1080-ubuntu-16-04-cuda-8-0rc-cudnn-7-tensorflowmxnetcaffedarknet/">раз</a>, <a href="https://no2147483647.wordpress.com/2015/12/07/deep-learning-for-hackers-with-mxnet-1/">два</a>, <a href="http://www.pyimagesearch.com/2016/07/04/how-to-install-cuda-toolkit-and-cudnn-for-deep-learning/">три</a>, <a href="http://askubuntu.com/questions/767269/how-can-i-install-cudnn-on-ubuntu-16-04">четыре</a>.</p>
+<p>Обучать нейросети на CPU долго и скучно, поэтому прежде всего нужна видеокарта от Nvidia. Хорошо, когда она на архитектуре последнего поколения - сейчас это Pascal. Еще лучше, если это GTX 1080 c 8 Гб памяти. Но и на GTX 1050Ti у меня все достаточно бодро работает.</p>
+<p>Устанавливаем драйвер по <a href="http://help.ubuntu.ru/wiki/%D0%B4%D1%80%D0%B0%D0%B9%D0%B2%D0%B5%D1%80_%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE%D0%BA%D0%B0%D1%80%D1%82_nvidia">инструкции</a>:</p>
+<pre class="bash"><code>sudo apt-get purge nvidia* # удаляем старый драйвер, если он был
+sudo add-apt-repository ppa:graphics-drivers/ppa 
+sudo apt update
+# 370 заменить на актуальную версию
+sudo apt-get install nvidia-370 nvidia-settings 
+sudo nvidia-xconfig</code></pre>
+<p>Устанавливаем CUDA: скачиваем runfile с <a href="https://developer.nvidia.com/cuda-downloads" class="uri">https://developer.nvidia.com/cuda-downloads</a>, запускаем установку командой <code>sudo sh cuda_8.0.44_linux.run</code> (в моем случае использовалась версия 8.0.44, у вас может быть более новая, а для старых видеокарт - наоборот, нужна более старая).</p>
+<p>Устанавливаем cuDNN: регистриуемся и скачиваем с <a href="https://developer.nvidia.com/rdp/cudnn-download" class="uri">https://developer.nvidia.com/rdp/cudnn-download</a>, распаковываем, копируем нужные файлы в положенные места:</p>
+<pre class="bash"><code>tar -zxf cudnn-8.0-linux-x64-v5.1.tgz
+cd cuda # имя папки после распаковки
+sudo cp -P include/cudnn.h /usr/include
+sudo cp -P lib64/libcudnn* /usr/lib/x86_64-linux-gnu/
+sudo chmod a+r /usr/lib/x86_64-linux-gnu/libcudnn*</code></pre>
+<p>За работой видеокарты поможет следить консольная утилита <code>nvidia-smi</code>.</p>
+</div>
+<div id="-mxnet----r--python" class="section level2">
+<h2>3. Установка mxnet с интерфейсами для R и Python</h2>
+<p>Ставим нужные зависимости:</p>
+<pre class="bash"><code>sudo apt-get update
+sudo apt-get install -y build-essential git libatlas-base-dev libopencv-dev
+sudo apt-get install libcurl4-openssl-dev libssl-dev
+sudo apt-get install libxml2-dev</code></pre>
+<p>При дальнейшей установке, возможно, будет не хватать чего-то еще - ставим аналогичным образом.</p>
+<p>Установка самой библиотеки <strong>mxnet</strong> происходит путем скачивания с Гитхаба и сборки из исходников:</p>
+<pre class="bash"><code>git clone --recursive https://github.com/dmlc/mxnet
+cd mxnet
+nano make/config.mk </code></pre>
+<p>В файл <em>make/config.mk</em> нужно внести следующие изменения, чтобы библиотека собралась с поддержкой GPU:</p>
+<pre><code>USE_CUDA = 1
+USE_CUDA_PATH = /usr/local/cuda
+USE_CUDNN = 1
+USE_BLAS = atlas</code></pre>
+<p>Вместо <code>atlas</code> можно указать <code>blas</code> или <code>openblas</code>. Также файл <em>make/config.mk</em> можно скопировать на уровень выше (в папку <em>mxnet</em>) и отредактировать копию. Сама сборка запускается командой <code>make -j4</code>, где 4 - количество используемых ядер. Лучше указать все имеющиеся, потому что процесс компиляции небыстрый. При повторной сборке нужно будет предварительной выполнить команду <code>make clean_all</code>.</p>
+<div id="---r" class="section level3">
+<h3>Установка пакета для R</h3>
+<p>Запускаем из папки <code>mxnet</code>:</p>
+<pre class="bash"><code>cd R-package
+Rscript -e &quot;library(devtools); library(methods); options(repos=c(CRAN=&#39;https://cran.rstudio.com&#39;)); install_deps(dependencies = TRUE)&quot;
+cd ..
+make rpkg
+R CMD INSTALL mxnet_current_r.tar.gz</code></pre>
+<p>После чего вносим изменения в <code>/usr/lib/R/etc/ldpaths</code> (команда <code>sudo nano /usr/lib/R/etc/ldpaths</code>):</p>
+<pre><code>export CUDA_HOME=/usr/local/cuda 
+export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}</code></pre>
+</div>
+<div id="---python" class="section level3">
+<h3>Установка библиотеки для Python</h3>
+<pre class="bash"><code>cd ~/mxnet/setup-utils
+bash install-mxnet-ubuntu-python.sh</code></pre>
+<p>Таким образом будет выполнена установка для системной версии Python, у меня это 2.7 - с Python 3 могут быть проблемы. Если у вас установлен дистрибутив Anaconda, то в <code>~/.bashrc</code> нужно закомментировать строку вида <code>export PATH=&quot;/home/andrey/anaconda3/bin:$PATH&quot;</code>. Впрочем, установка с использованием виртуальных окружений Anaconda тоже не представляет сложностей, по <a href="http://guanghan.info/blog/en/my-works/building-our-personal-deep-learning-rig-gtx-1080-ubuntu-16-04-cuda-8-0rc-cudnn-7-tensorflowmxnetcaffedarknet/">ссылке</a> есть описание.</p>
+<p>Для корректной работы библиотеки мне пришлось отредактировать файл <code>~/.bashrc</code> (команда <code>sudo nano ~/.bashrc</code>), добавив следующие строки:</p>
+<pre><code>export CUDA_HOME=/usr/local/cuda-8.0
+export LD_LIBRARY_PATH=${CUDA_HOME}/lib64
+PATH=${CUDA_HOME}/bin:${PATH}
+export PATH</code></pre>
+<p>После чего можно перейти в папку <code>mxnet</code> и запустить тесты на CPU и GPU:</p>
+<pre class="bash"><code>python example/image-classification/train_mnist.py
+python example/image-classification/train_mnist.py --network lenet --gpus 0 </code></pre>
+</div>
+</div>
+<div id="-" class="section level2">
+<h2>4. Подготовка данных</h2>
+<p>Описан процесс подготовки данных, начиная с “сырых” картинок. Для некоторых классических наборов данных уже есть готовые бинарные файлы: <a href="http://data.dmlc.ml/mxnet/data/" class="uri">http://data.dmlc.ml/mxnet/data/</a>.</p>
+<p>Будем использовать набор <a href="https://www.kaggle.com/c/cifar-10/data">cifar10</a>, архив <em>train.7z</em>: картинки в формате .png 32х32х3, то есть 32x32 пикселя с тремя цветовыми каналами (RGB). Всего 50000 картинок в 10 классах, по 5000 в каждом. После распаковки назовем папку с картинками <code>data</code>.</p>
+<p>Используемый далее скрипт <strong>im2rec.py</strong> должен работать с файлами разных форматов, включая .png, но у меня он работал только с .jpg. Мне подказали, что дело может быть в сборке <strong>opencv</strong> без поддержки формата .png, но сборка <strong>opencv</strong> из исходников тоже ничего не дала, как и установка командой <code>sudo apt-get install python-opencv</code>. Так что будем конвертировать в .jpg.</p>
+<p>Устанавливаем утилиту <strong>imagemagick</strong>: <code>sudo apt-get install imagemagick</code>. Конвертируем .png в .jpg и удаляем исходные файлы в формате .png:</p>
+<pre class="bash"><code>cd ~/R/cifar10/data
+
+for img in *.png
+ do 
+  convert &quot;$img&quot; &quot;$img.jpg&quot;
+ done
+ 
+rm *.png</code></pre>
+<p>Теперь файлы имеют имена вида <em>1.png.jpg</em>. Их нужно переименовать таким образом, чтобы они всегда шли в соответствии с порядком номеров, то есть добавить в начале имени каждого файла нужное количество нулей:</p>
+<pre class="r"><code># Исходные имена файлов
+files &lt;- list.files(&quot;data&quot;)
+
+# Создаем вектор из нужного количества 0, которые добавляются к номеру картинки
+max_length &lt;- max(sapply(files, nchar))
+zeros &lt;- max_length - sapply(files, nchar)
+zeros &lt;- paste0(sapply(zeros, function(x) paste(rep(0, x), collapse = &quot;&quot;)))
+
+# Новые имена файлов
+newnames &lt;- paste0(&quot;./data/&quot;, zeros, files)
+
+# Полные имена файлов (с папкой, где они лежат)
+files &lt;- paste0(&quot;./data/&quot;, files)
+
+# Переименовываем файлы в формате 00001.png.jpg
+Map(function(x, y) file.rename(from = x, to = y), files, newnames)</code></pre>
+<p>Осталось разложить файлы по папкам таким образом, чтобы в каждой папке были изображения одного класса:</p>
+<pre class="r"><code># Исходные имена файлов
+files &lt;- list.files(&quot;data&quot;)
+
+# Метки классов
+labels &lt;- read.table(&quot;trainLabels.csv&quot;, header = TRUE, sep = &quot;,&quot;)
+
+# Создаем папки для каждого класса
+lapply(as.character(unique(labels$label)), 
+       function(x) dir.create(path = paste0(&quot;./data/&quot;, x)))
+
+# Новые имена файлов
+newnames &lt;- paste0(&quot;./data/&quot;, labels$label, &quot;/&quot;, files)
+
+# Полные имена файлов (с папкой, где они лежат)
+files &lt;- paste0(&quot;./data/&quot;, files)
+
+# Раскладываем файлы по папкам
+Map(function(x, y) file.rename(from = x, to = y), files, newnames)</code></pre>
+<p>Библиотека <strong>mxnet</strong> работает с бинарными файлами формата RecordIO. Создать их можно с помощью идущего в комплекте скрипта на Python, для которого нужно разложить файлы как раз так, как мы только что сделали - каждый класс в отдельной папке. Вначал создается два списка: 80% файлов - обучающая выборка (<em>cifar_train.lst</em>), 20% - проверочная (<em>cifar_val.lst</em>). Затем из файлов в этих списках создаются бинарные файлы <em>cifar_train.rec</em> и <em>cifar_val.rec</em>. Отдельный тестовый набор для финальной оценка качества создавать не будем, ограничимся проверочным.</p>
+<pre class="bash"><code>cd ~/R/cifar10/
+python ~/mxnet/tools/im2rec.py --list=1 --recursive=1 --train-ratio=0.8 cifar data
+python ~/mxnet/tools/im2rec.py --num-thread=4 --pass-through=1 cifar_train.lst data
+python ~/mxnet/tools/im2rec.py --num-thread=4 --pass-through=1 cifar_val.lst data</code></pre>
+</div>
+<div id="---" class="section level2">
+<h2>5. Обучение сверточной нейронной сети</h2>
+<pre class="r"><code>setwd(&quot;~/R/cifar10/&quot;)
+library(mxnet)</code></pre>
+<p>Для обучения нейросети нужны три компонента: итераторы для данных, символьное описание модели (архитектура сети) и собственно вызов функции для обучения. См. <a href="https://github.com/dmlc/mxnet/tree/master/example/image-classification">примеры</a>, а также <a href="https://github.com/dmlc/mxnet/blob/master/R-package/demo/basic_model.R">basic_model.R</a>.</p>
+<div id="--" class="section level3">
+<h3>Итераторы для данных</h3>
+<p>Создадим функцию, которая будет возвращать итераторы для обучающей и проверочной выборки. Эта функция принимает следующие аргументы: размерность данных, пути к файлам с обучающей и проверочной выборками, размер мини-выборки (batch size):</p>
+<pre class="r"><code>get_iterator &lt;- function(data_shape, 
+                         train_data, 
+                         val_data, 
+                         batch_size = 128) {
+    train &lt;- mx.io.ImageRecordIter(
+        path.imgrec = train_data,
+        batch.size  = batch_size,
+        data.shape  = data_shape,
+        rand.crop   = TRUE,
+        rand.mirror = TRUE)
+  
+    val &lt;- mx.io.ImageRecordIter(
+        path.imgrec = val_data,
+        batch.size  = batch_size,
+        data.shape  = data_shape,
+        rand.crop   = FALSE,
+        rand.mirror = FALSE
+        )
+ 
+  return(list(train = train, val = val))
+}</code></pre>
+<p>Таким образом можно работать со сколь угодно большими наборами данных. Оперативная память и память видеокарты ограничивают только размер мини-выборки, которая загружается вся сразу. Маленькие картинки можно загружать десятками-сотнями, большие - меньшими порциями.</p>
+<p>Создаем итераторы, указав размерность <code>(28, 28, 3)</code>, то есть картинки будут обрезаться до размера 28х28:</p>
+<pre class="r"><code>data  &lt;- get_iterator(data_shape = c(28, 28, 3),
+                      train_data = &quot;/home/andrey/R/cifar10/cifar_train.rec&quot;,
+                      val_data   = &quot;/home/andrey/R/cifar10/cifar_val.rec&quot;,
+                      batch_size = 100)
+train &lt;- data$train
+val   &lt;- data$val</code></pre>
+<p>Выше мы указали <code>rand.crop   = TRUE</code>, то есть обрезка до нужного размера будет происходить случайным образом (насколько я понимаю, для каждой эпохи обучения), и это увеличит разнообразие предъявляемых обучающих примеров. <code>rand.mirror = TRUE</code> с той же целью создает зеркальные варианты изображений. Для проверочных данных никакие трансформации не задаем.</p>
+</div>
+<div id="-" class="section level3">
+<h3>Архитектура нейросети</h3>
+<p>Используем один из вариантов архитектуры <a href="https://github.com/dmlc/mxnet/blob/master/example/image-classification/symbol_resnet-28-small.R">Resnet</a>:</p>
+<pre class="r"><code>conv_factory &lt;- function(data, num_filter, kernel, stride,
+                         pad, act_type = &#39;relu&#39;, conv_type = 0) {
+    if (conv_type == 0) {
+      conv = mx.symbol.Convolution(data = data, num_filter = num_filter,
+                                   kernel = kernel, stride = stride, pad = pad)
+      bn = mx.symbol.BatchNorm(data = conv)
+      act = mx.symbol.Activation(data = bn, act_type = act_type)
+      return(act)
+    } else if (conv_type == 1) {
+      conv = mx.symbol.Convolution(data = data, num_filter = num_filter,
+                                   kernel = kernel, stride = stride, pad = pad)
+      bn = mx.symbol.BatchNorm(data = conv)
+      return(bn)
+    }
+}
+
+residual_factory &lt;- function(data, num_filter, dim_match) {
+  if (dim_match) {
+    identity_data = data
+    conv1 = conv_factory(data = data, num_filter = num_filter, kernel = c(3, 3),
+                         stride = c(1, 1), pad = c(1, 1), act_type = &#39;relu&#39;, conv_type = 0)
+    
+    conv2 = conv_factory(data = conv1, num_filter = num_filter, kernel = c(3, 3),
+                         stride = c(1, 1), pad = c(1, 1), conv_type = 1)
+    new_data = identity_data + conv2
+    act = mx.symbol.Activation(data = new_data, act_type = &#39;relu&#39;)
+    return(act)
+  } else {
+    conv1 = conv_factory(data = data, num_filter = num_filter, kernel = c(3, 3),
+                         stride = c(2, 2), pad = c(1, 1), act_type = &#39;relu&#39;, conv_type = 0)
+    conv2 = conv_factory(data = conv1, num_filter = num_filter, kernel = c(3, 3),
+                         stride = c(1, 1), pad = c(1, 1), conv_type = 1)
+    
+    # adopt project method in the paper when dimension increased
+    project_data = conv_factory(data = data, num_filter = num_filter, kernel = c(1, 1),
+                                stride = c(2, 2), pad = c(0, 0), conv_type = 1)
+    new_data = project_data + conv2
+    act = mx.symbol.Activation(data = new_data, act_type = &#39;relu&#39;)
+    return(act)
+  }
+}
+
+residual_net &lt;- function(data, n) {
+  #fisrt 2n layers
+  for (i in 1:n) {
+    data = residual_factory(data = data, num_filter = 16, dim_match = TRUE)
+  }
+  
+  
+  #second 2n layers
+  for (i in 1:n) {
+    if (i == 1) {
+      data = residual_factory(data = data, num_filter = 32, dim_match = FALSE)
+    } else {
+      data = residual_factory(data = data, num_filter = 32, dim_match = TRUE)
+    }
+  }
+  #third 2n layers
+  for (i in 1:n) {
+    if (i == 1) {
+      data = residual_factory(data = data, num_filter = 64, dim_match = FALSE)
+    } else {
+      data = residual_factory(data = data, num_filter = 64, dim_match = TRUE)
+    }
+  }
+  return(data)
+}
+
+get_symbol &lt;- function(num_classes = 10) {
+  conv &lt;- conv_factory(data = mx.symbol.Variable(name = &#39;data&#39;), num_filter = 16,
+                      kernel = c(3, 3), stride = c(1, 1), pad = c(1, 1),
+                      act_type = &#39;relu&#39;, conv_type = 0)
+  n &lt;- 3 # set n = 3 means get a model with 3*6+2=20 layers, set n = 9 means 9*6+2=56 layers
+  resnet &lt;- residual_net(conv, n) #
+  pool &lt;- mx.symbol.Pooling(data = resnet, kernel = c(7, 7), pool_type = &#39;avg&#39;)
+  flatten &lt;- mx.symbol.Flatten(data = pool, name = &#39;flatten&#39;)
+  fc &lt;- mx.symbol.FullyConnected(data = flatten, num_hidden = num_classes, name = &#39;fc1&#39;)
+  softmax &lt;- mx.symbol.SoftmaxOutput(data = fc, name = &#39;softmax&#39;)
+  return(softmax)
+}
+
+# Сеть для 10 классов
+resnet &lt;- get_symbol(10)</code></pre>
+<p>Поскольку сеть очень глубокая, ее неудобно описывать слой за слоем. Здесь применяются дополнительные функции для создания нужного количества слоев; это не очень интуитивно, но пользоваться готовыми решениями и адаптировать их под свои нужды не так уж сложно. А создать свою сеть из умеренного количества слоев вообще не проблема: объект, содержащий описание n-1 слоев, передается функции-конструктору n-ого слоя. Чтобы узнать, какие бывают слои, воспользуйтесь командой <code>apropos(&quot;mx.symbol.&quot;)</code>. Можно даже создавать свои собственные слои, но это уже <a href="http://mxnet.io/how_to/new_op.html">сложнее</a>, и описания для R я не нашел.</p>
+</div>
+<div id="-" class="section level3">
+<h3>Обучение модели</h3>
+<p>Начинаем обучение модели с использованием GPU (<code>ctx = mx.gpu(0)</code>) в течение трех эпох, сохраняя модель после каждой эпохи (<code>epoch.end.callback = mx.callback.save.checkpoint(&quot;resnet&quot;)</code>):</p>
+<pre class="r"><code>model &lt;- mx.model.FeedForward.create(
+  symbol             = resnet,
+  X                  = train,
+  eval.data          = val,
+  ctx                = mx.gpu(0),
+  eval.metric        = mx.metric.accuracy,
+  num.round          = 3,
+  learning.rate      = 0.05,
+  momentum           = 0.9,
+  wd                 = 0.00001,
+  kvstore            = &quot;local&quot;,
+  array.batch.size   = 100,
+  epoch.end.callback =  mx.callback.save.checkpoint(&quot;resnet&quot;),
+  batch.end.callback = mx.callback.log.train.metric(150),
+  initializer        = mx.init.Xavier(factor_type = &quot;in&quot;, magnitude = 2.34),
+  optimizer          = &quot;sgd&quot;
+)</code></pre>
+<pre><code>## Start training with 1 devices
+## Batch [150] Train-accuracy=0.302533333333333
+## Batch [300] Train-accuracy=0.363466666666667
+## [1] Train-accuracy=0.397518796992481
+## [1] Validation-accuracy=0.4561
+## Model checkpoint saved to resnet-0001.params
+## Batch [150] Train-accuracy=0.538733333333333
+## Batch [300] Train-accuracy=0.565000000000001
+## [2] Train-accuracy=0.581825
+## [2] Validation-accuracy=0.6296
+## Model checkpoint saved to resnet-0002.params
+## Batch [150] Train-accuracy=0.6462
+## Batch [300] Train-accuracy=0.660499999999999
+## [3] Train-accuracy=0.671699999999999
+## [3] Validation-accuracy=0.6096
+## Model checkpoint saved to resnet-0003.params</code></pre>
+<p>В рабочей папке сохранились файлы <em>resnet-0001.params</em>, <em>resnet-0002.params</em>, <em>resnet-0002.params</em> и <em>resnet-symbol.json</em>. В них есть все необходимое, чтобы продолжить обучать модель. Загружаем модель после 3 эпох:</p>
+<pre class="r"><code>model &lt;- mx.model.load(&quot;resnet&quot;, 3)</code></pre>
+<p>Продолжаем обучение, уменьшив скорость обучения (<code>learning.rate = 0.03</code>)</p>
+<pre class="r"><code>model &lt;- mx.model.FeedForward.create(
+  symbol             = model$symbol,
+  X                  = train,
+  eval.data          = val,
+  ctx                = mx.gpu(0),
+  eval.metric        = mx.metric.accuracy,
+  num.round          = 12,
+  learning.rate      = 0.03,
+  momentum           = 0.9,
+  wd                 = 0.00001,
+  kvstore            = &quot;local&quot;,
+  array.batch.size   = 100,
+# epoch.end.callback = mx.callback.save.checkpoint(&quot;resnet&quot;),
+  batch.end.callback = mx.callback.log.train.metric(150),
+  initializer        = mx.init.Xavier(factor_type = &quot;in&quot;, magnitude = 2.34),
+  optimizer          = &quot;sgd&quot;,
+  arg.params         = model$arg.params, 
+  aux.params         = model$aux.params
+)</code></pre>
+<pre><code>## Start training with 1 devices
+## Batch [150] Train-accuracy=0.722133333333333
+## Batch [300] Train-accuracy=0.727466666666666
+## [1] Train-accuracy=0.733508771929825
+## [1] Validation-accuracy=0.6953
+## Batch [150] Train-accuracy=0.744866666666666
+## Batch [300] Train-accuracy=0.750466666666667
+## [2] Train-accuracy=0.75545
+## [2] Validation-accuracy=0.7529
+## Batch [150] Train-accuracy=0.766133333333334
+## Batch [300] Train-accuracy=0.769800000000001
+## [3] Train-accuracy=0.77345
+## [3] Validation-accuracy=0.7685
+## Batch [150] Train-accuracy=0.7774
+## Batch [300] Train-accuracy=0.7809
+## [4] Train-accuracy=0.78505
+## [4] Validation-accuracy=0.772
+## Batch [150] Train-accuracy=0.795533333333333
+## Batch [300] Train-accuracy=0.797933333333334
+## [5] Train-accuracy=0.8005
+## [5] Validation-accuracy=0.7801
+## Batch [150] Train-accuracy=0.807466666666667
+## Batch [300] Train-accuracy=0.809100000000001
+## [6] Train-accuracy=0.811400000000001
+## [6] Validation-accuracy=0.7899
+## Batch [150] Train-accuracy=0.8132
+## Batch [300] Train-accuracy=0.814500000000001
+## [7] Train-accuracy=0.816875
+## [7] Validation-accuracy=0.7833
+## Batch [150] Train-accuracy=0.8214
+## Batch [300] Train-accuracy=0.823466666666668
+## [8] Train-accuracy=0.824075000000001
+## [8] Validation-accuracy=0.8008
+## Batch [150] Train-accuracy=0.829466666666667
+## Batch [300] Train-accuracy=0.829433333333335
+## [9] Train-accuracy=0.831825000000001
+## [9] Validation-accuracy=0.7973
+## Batch [150] Train-accuracy=0.836733333333333
+## Batch [300] Train-accuracy=0.837
+## [10] Train-accuracy=0.83925
+## [10] Validation-accuracy=0.7949
+## Batch [150] Train-accuracy=0.8382
+## Batch [300] Train-accuracy=0.840033333333334
+## [11] Train-accuracy=0.8414
+## [11] Validation-accuracy=0.7961
+## Batch [150] Train-accuracy=0.8482
+## Batch [300] Train-accuracy=0.846933333333334
+## [12] Train-accuracy=0.8481
+## [12] Validation-accuracy=0.8098</code></pre>
+<p>Видим, что модель начинает переобучаться, потому что качество на обучающих данных растет, а на проверочных - нет. Хотя было бы полезно продолжить обучение и посмотреть, действительно ли это плато, или будет еще небольшой рост. Очень радует скорость работы, на обучение ушли считанные минуты.</p>
+<p>Архитектуру сети можно <a href="http://mxnet.io/how_to/visualize_graph.html">визуализировать</a> (<a href="http://josephpcohen.com/w/visualizing-cnn-architectures-side-by-side-with-mxnet/">примеры</a>):</p>
+<pre class="r"><code>graph.viz(model$symbol$as.json(), graph.width.px = 1200, graph.height.px = 3000)</code></pre>
+<div id="htmlwidget-56c1412459bb4c3b787e" style="width:1200px;height:3000px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-56c1412459bb4c3b787e">{"x":{"diagram":"digraph {\n\ngraph [layout = \"neato\",\n       outputorder = \"edgesfirst\"]\n\nnode [fontname = \"Helvetica\",\n     fontsize = \"10\",\n     shape = \"circle\",\n     fixedsize = \"true\",\n     width = \"0.5\",\n     style = \"filled\",\n     fillcolor = \"aliceblue\",\n     color = \"gray70\",\n     fontcolor = \"gray50\"]\n\nedge [len = \"1.5\",\n     color = \"gray40\",\n     arrowsize = \"0.5\"]\n\n  \"0\" [label = \"data\", style = \"filled\", fillcolor = \"#8dd3c7\", shape = \"star\", width = \"1.3\", height = \"0.8034\"] \n  \"3\" [label = \"Convolution\n3x3/1, 16\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"8\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"9\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"12\" [label = \"Convolution\n3x3/1, 16\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"17\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"18\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"21\" [label = \"Convolution\n3x3/1, 16\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"26\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"27\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"28\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"31\" [label = \"Convolution\n3x3/1, 16\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"36\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"37\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"40\" [label = \"Convolution\n3x3/1, 16\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"45\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"46\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"47\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"50\" [label = \"Convolution\n3x3/1, 16\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"55\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"56\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"59\" [label = \"Convolution\n3x3/1, 16\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"64\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"65\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"66\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"69\" [label = \"Convolution\n1x1/2, 32\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"74\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"77\" [label = \"Convolution\n3x3/2, 32\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"82\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"83\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"86\" [label = \"Convolution\n3x3/1, 32\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"91\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"92\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"93\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"96\" [label = \"Convolution\n3x3/1, 32\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"101\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"102\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"105\" [label = \"Convolution\n3x3/1, 32\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"110\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"111\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"112\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"115\" [label = \"Convolution\n3x3/1, 32\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"120\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"121\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"124\" [label = \"Convolution\n3x3/1, 32\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"129\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"130\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"131\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"134\" [label = \"Convolution\n1x1/2, 64\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"139\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"142\" [label = \"Convolution\n3x3/2, 64\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"147\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"148\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"151\" [label = \"Convolution\n3x3/1, 64\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"156\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"157\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"158\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"161\" [label = \"Convolution\n3x3/1, 64\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"166\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"167\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"170\" [label = \"Convolution\n3x3/1, 64\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"175\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"176\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"177\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"180\" [label = \"Convolution\n3x3/1, 64\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"185\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"186\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"189\" [label = \"Convolution\n3x3/1, 64\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"194\" [label = \"BatchNorm\", style = \"filled\", fillcolor = \"#bebada\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"195\" [label = \"elemwise_add\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"196\" [label = \"Activation\nrelu\", style = \"filled\", fillcolor = \"#ffffb3\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"197\" [label = \"Pooling\n\n7x7/NA\", style = \"filled\", fillcolor = \"#80b1d3\", shape = \"oval\", width = \"1.3\", height = \"0.8034\"] \n  \"198\" [label = \"Flatten\", style = \"filled\", fillcolor = \"#fdb462\", shape = \"invtriangle\", width = \"1.3\", height = \"0.8034\"] \n  \"201\" [label = \"FullyConnected\n10\", style = \"filled\", fillcolor = \"#fb8072\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n  \"203\" [label = \"softmax\", style = \"filled\", fillcolor = \"#fccde5\", shape = \"box\", width = \"1.3\", height = \"0.8034\"] \n\"201\"->\"203\" [id = \"1\"] \n\"198\"->\"201\" [id = \"2\"] \n\"197\"->\"198\" [id = \"3\"] \n\"196\"->\"197\" [id = \"4\"] \n\"195\"->\"196\" [id = \"5\"] \n\"177\"->\"195\" [id = \"6\"] \n\"194\"->\"195\" [id = \"7\"] \n\"189\"->\"194\" [id = \"8\"] \n\"186\"->\"189\" [id = \"9\"] \n\"185\"->\"186\" [id = \"10\"] \n\"180\"->\"185\" [id = \"11\"] \n\"177\"->\"180\" [id = \"12\"] \n\"176\"->\"177\" [id = \"13\"] \n\"158\"->\"176\" [id = \"14\"] \n\"175\"->\"176\" [id = \"15\"] \n\"170\"->\"175\" [id = \"16\"] \n\"167\"->\"170\" [id = \"17\"] \n\"166\"->\"167\" [id = \"18\"] \n\"161\"->\"166\" [id = \"19\"] \n\"158\"->\"161\" [id = \"20\"] \n\"157\"->\"158\" [id = \"21\"] \n\"139\"->\"157\" [id = \"22\"] \n\"156\"->\"157\" [id = \"23\"] \n\"151\"->\"156\" [id = \"24\"] \n\"148\"->\"151\" [id = \"25\"] \n\"147\"->\"148\" [id = \"26\"] \n\"142\"->\"147\" [id = \"27\"] \n\"131\"->\"142\" [id = \"28\"] \n\"134\"->\"139\" [id = \"29\"] \n\"131\"->\"134\" [id = \"30\"] \n\"130\"->\"131\" [id = \"31\"] \n\"112\"->\"130\" [id = \"32\"] \n\"129\"->\"130\" [id = \"33\"] \n\"124\"->\"129\" [id = \"34\"] \n\"121\"->\"124\" [id = \"35\"] \n\"120\"->\"121\" [id = \"36\"] \n\"115\"->\"120\" [id = \"37\"] \n\"112\"->\"115\" [id = \"38\"] \n\"111\"->\"112\" [id = \"39\"] \n\"93\"->\"111\" [id = \"40\"] \n\"110\"->\"111\" [id = \"41\"] \n\"105\"->\"110\" [id = \"42\"] \n\"102\"->\"105\" [id = \"43\"] \n\"101\"->\"102\" [id = \"44\"] \n\"96\"->\"101\" [id = \"45\"] \n\"93\"->\"96\" [id = \"46\"] \n\"92\"->\"93\" [id = \"47\"] \n\"74\"->\"92\" [id = \"48\"] \n\"91\"->\"92\" [id = \"49\"] \n\"86\"->\"91\" [id = \"50\"] \n\"83\"->\"86\" [id = \"51\"] \n\"82\"->\"83\" [id = \"52\"] \n\"77\"->\"82\" [id = \"53\"] \n\"66\"->\"77\" [id = \"54\"] \n\"69\"->\"74\" [id = \"55\"] \n\"66\"->\"69\" [id = \"56\"] \n\"65\"->\"66\" [id = \"57\"] \n\"47\"->\"65\" [id = \"58\"] \n\"64\"->\"65\" [id = \"59\"] \n\"59\"->\"64\" [id = \"60\"] \n\"56\"->\"59\" [id = \"61\"] \n\"55\"->\"56\" [id = \"62\"] \n\"50\"->\"55\" [id = \"63\"] \n\"47\"->\"50\" [id = \"64\"] \n\"46\"->\"47\" [id = \"65\"] \n\"28\"->\"46\" [id = \"66\"] \n\"45\"->\"46\" [id = \"67\"] \n\"40\"->\"45\" [id = \"68\"] \n\"37\"->\"40\" [id = \"69\"] \n\"36\"->\"37\" [id = \"70\"] \n\"31\"->\"36\" [id = \"71\"] \n\"28\"->\"31\" [id = \"72\"] \n\"27\"->\"28\" [id = \"73\"] \n\"9\"->\"27\" [id = \"74\"] \n\"26\"->\"27\" [id = \"75\"] \n\"21\"->\"26\" [id = \"76\"] \n\"18\"->\"21\" [id = \"77\"] \n\"17\"->\"18\" [id = \"78\"] \n\"12\"->\"17\" [id = \"79\"] \n\"9\"->\"12\" [id = \"80\"] \n\"8\"->\"9\" [id = \"81\"] \n\"3\"->\"8\" [id = \"82\"] \n\"0\"->\"3\" [id = \"83\"] \n}","config":{"engine":null,"options":null}},"evals":[],"jsHooks":[]}</script>
+<p>На этом рассмотрение основ заканчивается, продолжение следует.</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
