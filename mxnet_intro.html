@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -125,28 +125,28 @@ $(document).ready(function () {
 
 <div id="TOC">
 <ul>
-<li><a>1. Вступление</a></li>
-<li><a href="#-cudacudnn">2. Установка CUDA/cuDNN</a></li>
-<li><a href="#-mxnet----r--python">3. Установка mxnet с интерфейсами для R и Python</a><ul>
-<li><a href="#---r">Установка пакета для R</a></li>
-<li><a href="#---python">Установка библиотеки для Python</a></li>
+<li><a href="#part1">1. Вступление</a></li>
+<li><a href="#part2">2. Установка CUDA/cuDNN</a></li>
+<li><a href="#part3">3. Установка mxnet с интерфейсами для R и Python</a><ul>
+<li><a href="#rrr">Установка пакета для R</a></li>
+<li><a href="#python">Установка библиотеки для Python</a></li>
 </ul></li>
-<li><a href="#-">4. Подготовка данных</a></li>
-<li><a href="#---">5. Обучение сверточной нейронной сети</a><ul>
-<li><a href="#--">Итераторы для данных</a></li>
-<li><a href="#-">Архитектура нейросети</a></li>
-<li><a href="#-">Обучение модели</a></li>
+<li><a href="#part4">4. Подготовка данных</a></li>
+<li><a href="#part5">5. Обучение сверточной нейронной сети</a><ul>
+<li><a href="#iter">Итераторы для данных</a></li>
+<li><a href="#net">Архитектура нейросети</a></li>
+<li><a href="#model">Обучение модели</a></li>
 </ul></li>
 </ul>
 </div>
 
-<div class="section level2">
+<div id="part1" class="section level2">
 <h2>1. Вступление</h2>
 <p>Известно, что библиотеки для глубокого обучения (Deep learning) очень хорошо дружат с языком Python: например, библиотека <a href="https://keras.io/">Keras</a> написана на Python и может использовать в качестве бекенда <a href="http://deeplearning.net/software/theano/">Theano</a> (тоже на Python) или <a href="https://www.tensorflow.org/">Tensorflow</a> (C++/Python).</p>
 <p>Но пользователи R тоже не обделены возможностью обучать глубокие нейронные сети. Помимо недавно появившего <a href="https://rstudio.github.io/tensorflow/">интерфейса</a> для Tensorflow, существует не столь известная, но набирающая популярность библиотека <a href="https://github.com/dmlc/mxnet">mxnet</a>, написанная на C++ и укомплектованная интерфейсами и для R, и для Python (а также для Julia, Matlab, Scala и Javascript!). Данная библиотека обладает высокой производительностью и умеренным расходом памяти, умеет работать как на CPU, так и на GPU Nvidia, используя CUDA/cuDNN (причем можно обучаться сразу на нескольких видеокартах).</p>
 <p>Основным препятствием для ее освоения является очень своеобразно написанная и не всегда поддерживаемая в актуальном состоянии документация: если для Python она более-менее полная и последовательная, то в случае с R все плохо. <a href="http://mxnet.io/api/r/mxnet-r-reference-manual.pdf">MXNet R Reference Manual</a> является лишь списком функций и аргументов, подавляющее большинство примеров написаны с использованием Python, так что в R приходится действовать по аналогии и искать ответы в issues на Гитхабе. Это сообщение является попыткой слегка исправить ситуацию и создать руководство по установке и использованию <strong>mxnet</strong> в R. Возможно, будет и продолжение про более продвинутые темы.</p>
 </div>
-<div id="-cudacudnn" class="section level2">
+<div id="part2" class="section level2">
 <h2>2. Установка CUDA/cuDNN</h2>
 <p>Используется Linux; предполагается, что R и RStudio уже установлены. Полезные руководства: <a href="http://guanghan.info/blog/en/my-works/building-our-personal-deep-learning-rig-gtx-1080-ubuntu-16-04-cuda-8-0rc-cudnn-7-tensorflowmxnetcaffedarknet/">раз</a>, <a href="https://no2147483647.wordpress.com/2015/12/07/deep-learning-for-hackers-with-mxnet-1/">два</a>, <a href="http://www.pyimagesearch.com/2016/07/04/how-to-install-cuda-toolkit-and-cudnn-for-deep-learning/">три</a>, <a href="http://askubuntu.com/questions/767269/how-can-i-install-cudnn-on-ubuntu-16-04">четыре</a>.</p>
 <p>Обучать нейросети на CPU долго и скучно, поэтому прежде всего нужна видеокарта от Nvidia. Хорошо, когда она на архитектуре последнего поколения - сейчас это Pascal. Еще лучше, если это GTX 1080 c 8 Гб памяти. Но и на GTX 1050Ti у меня все достаточно бодро работает.</p>
@@ -166,7 +166,7 @@ sudo cp -P lib64/libcudnn* /usr/lib/x86_64-linux-gnu/
 sudo chmod a+r /usr/lib/x86_64-linux-gnu/libcudnn*</code></pre>
 <p>За работой видеокарты поможет следить консольная утилита <code>nvidia-smi</code>.</p>
 </div>
-<div id="-mxnet----r--python" class="section level2">
+<div id="part3" class="section level2">
 <h2>3. Установка mxnet с интерфейсами для R и Python</h2>
 <p>Ставим нужные зависимости:</p>
 <pre class="bash"><code>sudo apt-get update
@@ -184,7 +184,7 @@ USE_CUDA_PATH = /usr/local/cuda
 USE_CUDNN = 1
 USE_BLAS = atlas</code></pre>
 <p>Вместо <code>atlas</code> можно указать <code>blas</code> или <code>openblas</code>. Также файл <em>make/config.mk</em> можно скопировать на уровень выше (в папку <em>mxnet</em>) и отредактировать копию. Сама сборка запускается командой <code>make -j4</code>, где 4 - количество используемых ядер. Лучше указать все имеющиеся, потому что процесс компиляции небыстрый. При повторной сборке нужно будет предварительной выполнить команду <code>make clean_all</code>.</p>
-<div id="---r" class="section level3">
+<div id="rrr" class="section level3">
 <h3>Установка пакета для R</h3>
 <p>Запускаем из папки <code>mxnet</code>:</p>
 <pre class="bash"><code>cd R-package
@@ -196,7 +196,7 @@ R CMD INSTALL mxnet_current_r.tar.gz</code></pre>
 <pre><code>export CUDA_HOME=/usr/local/cuda 
 export LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}</code></pre>
 </div>
-<div id="---python" class="section level3">
+<div id="python" class="section level3">
 <h3>Установка библиотеки для Python</h3>
 <pre class="bash"><code>cd ~/mxnet/setup-utils
 bash install-mxnet-ubuntu-python.sh</code></pre>
@@ -211,7 +211,7 @@ export PATH</code></pre>
 python example/image-classification/train_mnist.py --network lenet --gpus 0 </code></pre>
 </div>
 </div>
-<div id="-" class="section level2">
+<div id="part4" class="section level2">
 <h2>4. Подготовка данных</h2>
 <p>Описан процесс подготовки данных, начиная с “сырых” картинок. Для некоторых классических наборов данных уже есть готовые бинарные файлы: <a href="http://data.dmlc.ml/mxnet/data/" class="uri">http://data.dmlc.ml/mxnet/data/</a>.</p>
 <p>Будем использовать набор <a href="https://www.kaggle.com/c/cifar-10/data">cifar10</a>, архив <em>train.7z</em>: картинки в формате .png 32х32х3, то есть 32x32 пикселя с тремя цветовыми каналами (RGB). Всего 50000 картинок в 10 классах, по 5000 в каждом. После распаковки назовем папку с картинками <code>data</code>.</p>
@@ -267,12 +267,12 @@ python ~/mxnet/tools/im2rec.py --list=1 --recursive=1 --train-ratio=0.8 cifar da
 python ~/mxnet/tools/im2rec.py --num-thread=4 --pass-through=1 cifar_train.lst data
 python ~/mxnet/tools/im2rec.py --num-thread=4 --pass-through=1 cifar_val.lst data</code></pre>
 </div>
-<div id="---" class="section level2">
+<div id="part5" class="section level2">
 <h2>5. Обучение сверточной нейронной сети</h2>
 <pre class="r"><code>setwd(&quot;~/R/cifar10/&quot;)
 library(mxnet)</code></pre>
 <p>Для обучения нейросети нужны три компонента: итераторы для данных, символьное описание модели (архитектура сети) и собственно вызов функции для обучения. См. <a href="https://github.com/dmlc/mxnet/tree/master/example/image-classification">примеры</a>, а также <a href="https://github.com/dmlc/mxnet/blob/master/R-package/demo/basic_model.R">basic_model.R</a>.</p>
-<div id="--" class="section level3">
+<div id="iter" class="section level3">
 <h3>Итераторы для данных</h3>
 <p>Создадим функцию, которая будет возвращать итераторы для обучающей и проверочной выборки. Эта функция принимает следующие аргументы: размерность данных, пути к файлам с обучающей и проверочной выборками, размер мини-выборки (batch size):</p>
 <pre class="r"><code>get_iterator &lt;- function(data_shape, 
@@ -306,7 +306,7 @@ train &lt;- data$train
 val   &lt;- data$val</code></pre>
 <p>Выше мы указали <code>rand.crop   = TRUE</code>, то есть обрезка до нужного размера будет происходить случайным образом (насколько я понимаю, для каждой эпохи обучения), и это увеличит разнообразие предъявляемых обучающих примеров. <code>rand.mirror = TRUE</code> с той же целью создает зеркальные варианты изображений. Для проверочных данных никакие трансформации не задаем.</p>
 </div>
-<div id="-" class="section level3">
+<div id="net" class="section level3">
 <h3>Архитектура нейросети</h3>
 <p>Используем один из вариантов архитектуры <a href="https://github.com/dmlc/mxnet/blob/master/example/image-classification/symbol_resnet-28-small.R">Resnet</a>:</p>
 <pre class="r"><code>conv_factory &lt;- function(data, num_filter, kernel, stride,
@@ -394,7 +394,7 @@ get_symbol &lt;- function(num_classes = 10) {
 resnet &lt;- get_symbol(10)</code></pre>
 <p>Поскольку сеть очень глубокая, ее неудобно описывать слой за слоем. Здесь применяются дополнительные функции для создания нужного количества слоев; это не очень интуитивно, но пользоваться готовыми решениями и адаптировать их под свои нужды не так уж сложно. А создать свою сеть из умеренного количества слоев вообще не проблема: объект, содержащий описание n-1 слоев, передается функции-конструктору n-ого слоя. Чтобы узнать, какие бывают слои, воспользуйтесь командой <code>apropos(&quot;mx.symbol.&quot;)</code>. Можно даже создавать свои собственные слои, но это уже <a href="http://mxnet.io/how_to/new_op.html">сложнее</a>, и описания для R я не нашел.</p>
 </div>
-<div id="-" class="section level3">
+<div id="model" class="section level3">
 <h3>Обучение модели</h3>
 <p>Начинаем обучение модели с использованием GPU (<code>ctx = mx.gpu(0)</code>) в течение трех эпох, сохраняя модель после каждой эпохи (<code>epoch.end.callback = mx.callback.save.checkpoint(&quot;resnet&quot;)</code>):</p>
 <pre class="r"><code>model &lt;- mx.model.FeedForward.create(
