@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Deep learning с использованием языка R и библиотеки mxnet. Предсказания, итераторы и дополнительные возможности</title>
+
+<script src="mxnet_usage_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="mxnet_usage_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="mxnet_usage_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="mxnet_usage_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="mxnet_usage_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="mxnet_usage_files/navigation-1.1/tabsets.js"></script>
+<link href="mxnet_usage_files/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="mxnet_usage_files/highlightjs-1.1/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Deep learning с использованием языка R и библиотеки mxnet. Предсказания, итераторы и дополнительные возможности</h1>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#ch1">1. Вступление</a></li>
+<li><a href="#ch2">2. Создание “словаря синонимов”</a></li>
+<li><a href="#ch3">3. Обучение модели</a></li>
+<li><a href="#ch4">4. Предсказания на основе модели</a></li>
+<li><a href="#ch5">5. Итераторы</a></li>
+<li><a href="#ch6">6. Доступные слои и функции потерь</a></li>
+<li><a href="#ch7">7. Использование активаций скрытых слоев</a></li>
+</ul>
+</div>
+
+<div id="ch1" class="section level2">
+<h2>1. Вступление</h2>
+<p>Это сообщение является продолжением <a href="http://biostat-r.blogspot.com/2017/01/deep-learning-r-mxnet.html">Deep learning с использованием языка R и библиотеки mxnet. Установка и начало работы</a>. Будет рассмотрено предсказание классов изображений на основе модели, а также работа с итераторами и некоторые другие аспекты.</p>
+<p>Полезные ссылки:</p>
+<p><a href="https://www.kaggle.com/c/second-annual-data-science-bowl/forums/t/18079/end-to-end-deep-learning-tutorial-0-0392?limit=all">End-to-End Deep Learning Tutorial</a>,</p>
+<p><a href="https://github.com/dmlc/mxnet/tree/master/docs/tutorials/r" class="uri">https://github.com/dmlc/mxnet/tree/master/docs/tutorials/r</a>,</p>
+<p><a href="https://github.com/dmlc/mxnet/tree/master/R-package/vignettes" class="uri">https://github.com/dmlc/mxnet/tree/master/R-package/vignettes</a>.</p>
+<p>По двум последним ссылкам доступна самая актуальная документация и примеры от разработчиков.</p>
+</div>
+<div id="ch2" class="section level2">
+<h2>2. Создание “словаря синонимов”</h2>
+<p>В комплекте с готовыми моделями, <a href="http://data.dmlc.ml/mxnet/data/">доступными для скачивания</a>, обычно идет файл <em>synset.txt</em>. Этот файл содержит информацию о соответствии между номером класса и его названием/меткой, например <code>0 &quot;airplane&quot;</code>. При создании бинарного файла с изображениями были также созданы файлы в формате .lst, из которых легко получить нужную нам таблицу:</p>
+<pre class="r"><code>setwd(&quot;~/R/cifar10/&quot;)
+library(mxnet)
+library(imager)
+library(abind)</code></pre>
+<pre class="r"><code>labels &lt;- read.table(&quot;cifar_train.lst&quot;)
+
+# Оставляем только уникальные значения
+labels &lt;- labels[!duplicated(labels$V2), ]
+
+# Разделяем имена файлов и имена папок, которые соответствуют меткам классов
+tmp &lt;- strsplit(as.character(labels$V3), split = &quot;/&quot;, fixed = TRUE)
+
+# Создаем таблицу с метками и номерами классов, сортируем по возрастанию номеров
+class_labels &lt;- data.frame(response = labels$V2,
+                           label = sapply(tmp, function(x) x[1]))
+class_labels &lt;- class_labels[order(class_labels$response), ]
+
+# Сохраняем в файл &quot;synset.txt&quot; для дальнейшего использования
+write.table(class_labels, &quot;synset.txt&quot;, row.names = FALSE, col.names = TRUE)</code></pre>
+<pre class="r"><code>class_labels &lt;- read.table(&quot;synset.txt&quot;, header = TRUE)</code></pre>
+</div>
+<div id="ch3" class="section level2">
+<h2>3. Обучение модели</h2>
+<p>Повторим обучение той же модели с тем же набором данных, что и в <a href="http://biostat-r.blogspot.com/2017/01/deep-learning-r-mxnet.html">прошлый раз</a>. Но теперь укажем размер изображений 32х30, то есть 32 пикселя в высоту и 30 пикселей в ширину (исходные картинки 32х32 будут обрезаться). Это нужно для лучшего понимания того, как правильно указывать размерности на этапе обучения модели и при ее использовании для предсказаний. Значения аргументов <code>kernel</code>, <code>stride</code>, <code>pad</code> задаются всегда в том же формате: сначала высота (y-координата), затем ширина (x-координата); третьим числов в векторе размерностей может быть глубина.</p>
+<p>Создаем итераторы:</p>
+<pre class="r"><code>get_iterator &lt;- function(data_shape, 
+                         train_data, 
+                         val_data, 
+                         batch_size = 128) {
+    train &lt;- mx.io.ImageRecordIter(
+        path.imgrec = train_data,
+        batch.size  = batch_size,
+        data.shape  = data_shape,
+        rand.crop   = TRUE,
+        rand.mirror = TRUE)
+  
+    val &lt;- mx.io.ImageRecordIter(
+        path.imgrec = val_data,
+        batch.size  = batch_size,
+        data.shape  = data_shape,
+        rand.crop   = FALSE,
+        rand.mirror = FALSE
+        )
+ 
+  return(list(train = train, val = val))
+}</code></pre>
+<pre class="r"><code>data  &lt;- get_iterator(data_shape = c(32, 30, 3), # 32 пикселя в высоту
+                      train_data = &quot;/home/andrey/R/cifar10/cifar_train.rec&quot;,
+                      val_data   = &quot;/home/andrey/R/cifar10/cifar_val.rec&quot;,
+                      batch_size = 100)
+train &lt;- data$train
+val   &lt;- data$val</code></pre>
+<p>Используем ту же архитектуру <a href="https://github.com/dmlc/mxnet/blob/master/example/image-classification/symbol_resnet-28-small.R">Resnet</a>:</p>
+<pre class="r"><code>conv_factory &lt;- function(data, num_filter, kernel, stride,
+                         pad, act_type = &#39;relu&#39;, conv_type = 0) {
+    if (conv_type == 0) {
+      conv = mx.symbol.Convolution(data = data, num_filter = num_filter,
+                                   kernel = kernel, stride = stride, pad = pad)
+      bn = mx.symbol.BatchNorm(data = conv)
+      act = mx.symbol.Activation(data = bn, act_type = act_type)
+      return(act)
+    } else if (conv_type == 1) {
+      conv = mx.symbol.Convolution(data = data, num_filter = num_filter,
+                                   kernel = kernel, stride = stride, pad = pad)
+      bn = mx.symbol.BatchNorm(data = conv)
+      return(bn)
+    }
+}
+
+residual_factory &lt;- function(data, num_filter, dim_match) {
+  if (dim_match) {
+    identity_data = data
+    conv1 = conv_factory(data = data, num_filter = num_filter, kernel = c(3, 3),
+                         stride = c(1, 1), pad = c(1, 1), act_type = &#39;relu&#39;, conv_type = 0)
+    
+    conv2 = conv_factory(data = conv1, num_filter = num_filter, kernel = c(3, 3),
+                         stride = c(1, 1), pad = c(1, 1), conv_type = 1)
+    new_data = identity_data + conv2
+    act = mx.symbol.Activation(data = new_data, act_type = &#39;relu&#39;)
+    return(act)
+  } else {
+    conv1 = conv_factory(data = data, num_filter = num_filter, kernel = c(3, 3),
+                         stride = c(2, 2), pad = c(1, 1), act_type = &#39;relu&#39;, conv_type = 0)
+    conv2 = conv_factory(data = conv1, num_filter = num_filter, kernel = c(3, 3),
+                         stride = c(1, 1), pad = c(1, 1), conv_type = 1)
+    
+    # adopt project method in the paper when dimension increased
+    project_data = conv_factory(data = data, num_filter = num_filter, kernel = c(1, 1),
+                                stride = c(2, 2), pad = c(0, 0), conv_type = 1)
+    new_data = project_data + conv2
+    act = mx.symbol.Activation(data = new_data, act_type = &#39;relu&#39;)
+    return(act)
+  }
+}
+
+residual_net &lt;- function(data, n) {
+  #fisrt 2n layers
+  for (i in 1:n) {
+    data = residual_factory(data = data, num_filter = 16, dim_match = TRUE)
+  }
+  
+  
+  #second 2n layers
+  for (i in 1:n) {
+    if (i == 1) {
+      data = residual_factory(data = data, num_filter = 32, dim_match = FALSE)
+    } else {
+      data = residual_factory(data = data, num_filter = 32, dim_match = TRUE)
+    }
+  }
+  #third 2n layers
+  for (i in 1:n) {
+    if (i == 1) {
+      data = residual_factory(data = data, num_filter = 64, dim_match = FALSE)
+    } else {
+      data = residual_factory(data = data, num_filter = 64, dim_match = TRUE)
+    }
+  }
+  return(data)
+}
+
+get_symbol &lt;- function(num_classes = 10) {
+  conv &lt;- conv_factory(data = mx.symbol.Variable(name = &#39;data&#39;), num_filter = 16,
+                      kernel = c(3, 3), stride = c(1, 1), pad = c(1, 1),
+                      act_type = &#39;relu&#39;, conv_type = 0)
+  n &lt;- 3 # set n = 3 means get a model with 3*6+2=20 layers, set n = 9 means 9*6+2=56 layers
+  resnet &lt;- residual_net(conv, n) #
+  pool &lt;- mx.symbol.Pooling(data = resnet, kernel = c(7, 7), pool_type = &#39;avg&#39;)
+  flatten &lt;- mx.symbol.Flatten(data = pool, name = &#39;flatten&#39;)
+  fc &lt;- mx.symbol.FullyConnected(data = flatten, num_hidden = num_classes, name = &#39;fc1&#39;)
+  softmax &lt;- mx.symbol.SoftmaxOutput(data = fc, name = &#39;softmax&#39;)
+  return(softmax)
+}
+
+# Сеть для 10 классов
+resnet &lt;- get_symbol(10)</code></pre>
+<p>Обучаем модель в течение 15 эпох:</p>
+<pre class="r"><code>model &lt;- mx.model.FeedForward.create(
+  symbol             = resnet,
+  X                  = train,
+  eval.data          = val,
+  ctx                = mx.gpu(0),
+  eval.metric        = mx.metric.accuracy,
+  num.round          = 15,
+  learning.rate      = 0.05,
+  momentum           = 0.9,
+  wd                 = 0.00001,
+  kvstore            = &quot;local&quot;,
+  array.batch.size   = 100,
+  epoch.end.callback = NULL,
+  batch.end.callback = mx.callback.log.train.metric(150),
+  initializer        = mx.init.Xavier(factor_type = &quot;in&quot;, magnitude = 2.34),
+  optimizer          = &quot;sgd&quot;
+)</code></pre>
+<pre><code>## Start training with 1 devices
+## Batch [150] Train-accuracy=0.2868
+## Batch [300] Train-accuracy=0.347766666666667
+## [1] Train-accuracy=0.38280701754386
+## [1] Validation-accuracy=0.4331
+## Batch [150] Train-accuracy=0.527066666666666
+## Batch [300] Train-accuracy=0.557066666666667
+## [2] Train-accuracy=0.5738
+## [2] Validation-accuracy=0.5977
+## Batch [150] Train-accuracy=0.637066666666666
+## Batch [300] Train-accuracy=0.649399999999999
+## [3] Train-accuracy=0.660374999999999
+## [3] Validation-accuracy=0.6443
+## Batch [150] Train-accuracy=0.704533333333333
+## Batch [300] Train-accuracy=0.711766666666666
+## [4] Train-accuracy=0.718349999999999
+## [4] Validation-accuracy=0.7042
+## Batch [150] Train-accuracy=0.7422
+## Batch [300] Train-accuracy=0.747533333333334
+## [5] Train-accuracy=0.752975000000001
+## [5] Validation-accuracy=0.7198
+## Batch [150] Train-accuracy=0.7704
+## Batch [300] Train-accuracy=0.772866666666667
+## [6] Train-accuracy=0.777025
+## [6] Validation-accuracy=0.7485
+## Batch [150] Train-accuracy=0.79
+## Batch [300] Train-accuracy=0.790533333333334
+## [7] Train-accuracy=0.794425000000001
+## [7] Validation-accuracy=0.772699999999999
+## Batch [150] Train-accuracy=0.806733333333333
+## Batch [300] Train-accuracy=0.807766666666668
+## [8] Train-accuracy=0.8109
+## [8] Validation-accuracy=0.7733
+## Batch [150] Train-accuracy=0.822799999999999
+## Batch [300] Train-accuracy=0.821533333333334
+## [9] Train-accuracy=0.825025
+## [9] Validation-accuracy=0.7679
+## Batch [150] Train-accuracy=0.8332
+## Batch [300] Train-accuracy=0.833066666666668
+## [10] Train-accuracy=0.834800000000001
+## [10] Validation-accuracy=0.7856
+## Batch [150] Train-accuracy=0.845333333333333
+## Batch [300] Train-accuracy=0.842533333333334
+## [11] Train-accuracy=0.843475
+## [11] Validation-accuracy=0.7886
+## Batch [150] Train-accuracy=0.8502
+## Batch [300] Train-accuracy=0.850333333333335
+## [12] Train-accuracy=0.851950000000001
+## [12] Validation-accuracy=0.7801
+## Batch [150] Train-accuracy=0.860866666666666
+## Batch [300] Train-accuracy=0.858900000000001
+## [13] Train-accuracy=0.8601
+## [13] Validation-accuracy=0.8068
+## Batch [150] Train-accuracy=0.8648
+## Batch [300] Train-accuracy=0.865733333333334
+## [14] Train-accuracy=0.86715
+## [14] Validation-accuracy=0.8171
+## Batch [150] Train-accuracy=0.867466666666666
+## Batch [300] Train-accuracy=0.869833333333333
+## [15] Train-accuracy=0.871949999999999
+## [15] Validation-accuracy=0.8096</code></pre>
+</div>
+<div id="ch4" class="section level2">
+<h2>4. Предсказания на основе модели</h2>
+<p>Для работы с изображениями в R будем использовать пакет <a href="http://dahtah.github.io/imager">imager</a>.</p>
+<p>В общих чертах процесс описан в руководстве <a href="https://github.com/dmlc/mxnet/blob/master/docs/tutorials/r/classifyRealImageWithPretrainedModel.md">Classify Images with a Pretrained Model</a>, но там есть некоторые нюансы и неточности. Примерами будут служить следующие два изображения:</p>
+<div class="figure">
+<img src="http://kindersay.com/files/images/bird.png" alt="bird.png" />
+<p class="caption">bird.png</p>
+</div>
+<div class="figure">
+<img src="http://kingofwallpapers.com/deer-images/deer-images-007.jpg" alt="deer.jpg" />
+<p class="caption">deer.jpg</p>
+</div>
+<p>Разберем операции предварительной обработки подробно для первого изображения:</p>
+<pre class="r"><code># Скачиваем или загружаем с диска изображение
+im &lt;- load.image(&quot;http://kindersay.com/files/images/bird.png&quot;)
+# Image. Width: 445 pix Height: 355 pix Depth: 1 Colour channels: 3 
+# Размерность: ширина на высоту
+# Depth - количество кадров, если это видео; для изображений всегда 1 
+# Colour channels - 3 цветовых канала (RGB)
+
+shape &lt;- dim(im)
+# 445 355   1   3
+# Индексация идет сначала по столбцам (ширина), затем по строкам (высота) -
+# изображение из линейного вектора формируется именно в таком порядке
+# В R матрицы формируются и индексируются в обратном порядке,
+# то есть используется так называемый Fortran-style, или порядок column-major:
+# a &lt;- 1:4
+# dim(a) &lt;- c(2, 2)
+# a
+#      [,1] [,2]
+# [1,]    1    3
+# [2,]    2    4
+
+# Меняем размер на 32х30, требуемый для нашей модели
+# Обрезка (crop) не используется
+resized &lt;- resize(im,  size_x = 30, size_y = 32)
+# Image. Width: 30 pix Height: 32 pix Depth: 1 Colour channels: 3 
+
+# Конвертируем в массив
+# Если значения для каждого цветового канала заданы в диапазоне [0, 1], 
+# то нужно умножить на 255. В нашем случае это не требуется
+arr &lt;- as.array(resized) 
+# 30 32  1  3 - 30 строк, а не 32 строки, как в изображении
+# Произошло транспонирование: строки стали столбцами
+
+# Средние значения для каждого пикселя не отнимаем
+# Задаем нужный формат (width, height, channel, num)
+dim(arr) &lt;- c(30, 32, 3, 1)
+
+# Предсказываем вероятности и класс
+prob &lt;- predict(model, X = arr)
+prob</code></pre>
+<pre><code>##              [,1]
+##  [1,] 0.097901896
+##  [2,] 0.002545726
+##  [3,] 0.742579162
+##  [4,] 0.041871570
+##  [5,] 0.016076958
+##  [6,] 0.017367113
+##  [7,] 0.011065663
+##  [8,] 0.066732869
+##  [9,] 0.001639599
+## [10,] 0.002219437</code></pre>
+<pre class="r"><code>class_labels$label[prob == max(prob)]</code></pre>
+<pre><code>## [1] bird
+## Levels: airplane automobile bird cat deer dog frog horse ship truck</code></pre>
+<p>Все этапы предварительной обработки можно оформить в виде функции (измененный вариант <code>preproc.image</code> из <a href="https://github.com/dmlc/mxnet/blob/master/docs/tutorials/r/classifyRealImageWithPretrainedModel.md" class="uri">https://github.com/dmlc/mxnet/blob/master/docs/tutorials/r/classifyRealImageWithPretrainedModel.md</a>):</p>
+<pre class="r"><code>preproc_image &lt;- function(src,              # URL or file location
+                          height,        
+                          width,  
+                          num_channels = 3, # 3 for RGB, 1 for grayscale
+                          mult_by = 1,      # set to 255 for normalized image
+                          crop = FALSE) {   # no crop by default
+    
+    im &lt;- load.image(src)
+    
+    if (crop) {
+        shape &lt;- dim(im)
+        short_edge &lt;- min(shape[1:2])
+        xx &lt;- floor((shape[1] - short_edge) / 2)
+        yy &lt;- floor((shape[2] - short_edge) / 2) 
+        im &lt;- crop.borders(im, xx, yy)
+    }
+    
+    resized &lt;- resize(im,  size_x = width, size_y = height)
+    arr &lt;- as.array(resized) * mult_by
+    dim(arr) &lt;- c(width, height, num_channels, 1)
+    return(arr)
+} </code></pre>
+<p>Предсказание для картинки с оленем:</p>
+<pre class="r"><code>arr &lt;- preproc_image(&quot;http://kingofwallpapers.com/deer-images/deer-images-007.jpg&quot;,
+                     height = 32,
+                     width = 30)
+prob &lt;- predict(model, X = arr)
+prob</code></pre>
+<pre><code>##               [,1]
+##  [1,] 1.974541e-05
+##  [2,] 4.638057e-06
+##  [3,] 3.291356e-02
+##  [4,] 6.472487e-03
+##  [5,] 8.688778e-01
+##  [6,] 1.603282e-02
+##  [7,] 4.853056e-03
+##  [8,] 7.081089e-02
+##  [9,] 2.876292e-06
+## [10,] 1.208015e-05</code></pre>
+<pre class="r"><code>class_labels$label[prob == max(prob)]</code></pre>
+<pre><code>## [1] deer
+## Levels: airplane automobile bird cat deer dog frog horse ship truck</code></pre>
+<p>Рассмотренную особенность с порядком индексации массивов нужно учитывать и при использовании итераторов по файлам в формате .csv, таких как в <a href="https://github.com/dmlc/mxnet/tree/master/example/kaggle-ndsb2">этом примере</a>. При создании такого файла исходное изображение (или несколько изображений, которые соответствуют одному наблюдению) превращаются в вектор, вектор становится строкой файла, а затем при обучении модели и при использовании модели для предсказаний задается правильная размерность массива. Это позволяет воспроизвести пространственную структуру входных данных, хранящихся в линейном виде.</p>
+<p>Вопросы оптимальной реализации этих операций в данном сообщении не рассматриваются, но при работе с большим количество изображений наверняка пригодятся пакеты типа <strong>foreach</strong> и <strong>doParallel</strong> для параллельной обработки, также может быть полезен пакет <strong>data.table</strong> и консольные утилиты.</p>
+<p>Простейший пример обработки нескольких изображений с использованием пакета <strong>abind</strong>:</p>
+<pre class="r"><code>image_urls &lt;- c(
+    &quot;http://kindersay.com/files/images/bird.png&quot;,
+    &quot;http://kingofwallpapers.com/deer-images/deer-images-007.jpg&quot;
+)
+
+images &lt;- lapply(image_urls,
+                 preproc_image,
+                 height = 32,
+                 width = 30)
+
+images &lt;- do.call(abind, images)
+
+probs &lt;- predict(model, X = images)
+
+probs</code></pre>
+<pre><code>##              [,1]         [,2]
+##  [1,] 0.097901933 1.974543e-05
+##  [2,] 0.002545726 4.638062e-06
+##  [3,] 0.742579103 3.291357e-02
+##  [4,] 0.041871566 6.472491e-03
+##  [5,] 0.016076960 8.688778e-01
+##  [6,] 0.017367108 1.603283e-02
+##  [7,] 0.011065662 4.853058e-03
+##  [8,] 0.066732846 7.081092e-02
+##  [9,] 0.001639599 2.876297e-06
+## [10,] 0.002219437 1.208016e-05</code></pre>
+<pre class="r"><code>class_labels$label[apply(probs, 2, function(x) which(x == max(x)))]</code></pre>
+<pre><code>## [1] bird deer
+## Levels: airplane automobile bird cat deer dog frog horse ship truck</code></pre>
+</div>
+<div id="ch5" class="section level2">
+<h2>5. Итераторы</h2>
+<p>Для работы с любыми данными, которые не помещаются в памяти, можно использовать функцию <code>mx.io.CSVIter()</code>. Как понятно из названия, она обрабатывает файлы в формате .csv построчно и конструирует из каждой строки массив (тензор) нужно размерности, который задается аргументами <code>data.shape</code> для самого набора данных и <code>label.shape</code> для целевой переменной. См. <a href="https://github.com/dmlc/mxnet/tree/master/example/kaggle-ndsb2" class="uri">https://github.com/dmlc/mxnet/tree/master/example/kaggle-ndsb2</a>. За создание .csv-файлов там отвечает код на Python. Аналог на R можно написать, взяв за основу представленную выше функцию <code>preproc_image()</code> и заменив <code>dim(arr) &lt;- c(width, height, num_channels, 1)</code> на <code>dim(arr) &lt;- c(width * height * num_channels * 1)</code>.</p>
+<p>Также есть возможность создавать свои собственные итераторы - см. <a href="https://github.com/dmlc/mxnet/blob/master/docs/tutorials/r/CustomIteratorTutorial.md">Custom Iterator Tutorial</a>. Чтобы сделать что-то действительно серьезно отличающееся от представленного варианта, понадобятся знания C++.</p>
+</div>
+<div id="ch6" class="section level2">
+<h2>6. Доступные слои и функции потерь</h2>
+<p>Список слоев довольно обширен:</p>
+<pre class="r"><code>apropos(&quot;mx.symbol.&quot;)</code></pre>
+<pre><code>##   [1] &quot;mx.symbol.abs&quot;                      
+##   [2] &quot;mx.symbol.Activation&quot;               
+##   [3] &quot;mx.symbol.adam_update&quot;              
+##   [4] &quot;mx.symbol.arccos&quot;                   
+##   [5] &quot;mx.symbol.arccosh&quot;                  
+##   [6] &quot;mx.symbol.arcsin&quot;                   
+##   [7] &quot;mx.symbol.arcsinh&quot;                  
+##   [8] &quot;mx.symbol.arctan&quot;                   
+##   [9] &quot;mx.symbol.arctanh&quot;                  
+##  [10] &quot;mx.symbol.argmax&quot;                   
+##  [11] &quot;mx.symbol.argmax_channel&quot;           
+##  [12] &quot;mx.symbol.argmin&quot;                   
+##  [13] &quot;mx.symbol.argsort&quot;                  
+##  [14] &quot;mx.symbol.batch_dot&quot;                
+##  [15] &quot;mx.symbol.BatchNorm&quot;                
+##  [16] &quot;mx.symbol.BlockGrad&quot;                
+##  [17] &quot;mx.symbol.broadcast_add&quot;            
+##  [18] &quot;mx.symbol.broadcast_axis&quot;           
+##  [19] &quot;mx.symbol.broadcast_div&quot;            
+##  [20] &quot;mx.symbol.broadcast_equal&quot;          
+##  [21] &quot;mx.symbol.broadcast_greater&quot;        
+##  [22] &quot;mx.symbol.broadcast_greater_equal&quot;  
+##  [23] &quot;mx.symbol.broadcast_hypot&quot;          
+##  [24] &quot;mx.symbol.broadcast_lesser&quot;         
+##  [25] &quot;mx.symbol.broadcast_lesser_equal&quot;   
+##  [26] &quot;mx.symbol.broadcast_maximum&quot;        
+##  [27] &quot;mx.symbol.broadcast_minimum&quot;        
+##  [28] &quot;mx.symbol.broadcast_minus&quot;          
+##  [29] &quot;mx.symbol.broadcast_mul&quot;            
+##  [30] &quot;mx.symbol.broadcast_not_equal&quot;      
+##  [31] &quot;mx.symbol.broadcast_plus&quot;           
+##  [32] &quot;mx.symbol.broadcast_power&quot;          
+##  [33] &quot;mx.symbol.broadcast_sub&quot;            
+##  [34] &quot;mx.symbol.broadcast_to&quot;             
+##  [35] &quot;mx.symbol.Cast&quot;                     
+##  [36] &quot;mx.symbol.ceil&quot;                     
+##  [37] &quot;mx.symbol.choose_element_0index&quot;    
+##  [38] &quot;mx.symbol.clip&quot;                     
+##  [39] &quot;mx.symbol.Concat&quot;                   
+##  [40] &quot;mx.symbol.Convolution&quot;              
+##  [41] &quot;mx.symbol.Correlation&quot;              
+##  [42] &quot;mx.symbol.cos&quot;                      
+##  [43] &quot;mx.symbol.cosh&quot;                     
+##  [44] &quot;mx.symbol.crop&quot;                     
+##  [45] &quot;mx.symbol.Crop&quot;                     
+##  [46] &quot;mx.symbol.CuDNNBatchNorm&quot;           
+##  [47] &quot;mx.symbol.Custom&quot;                   
+##  [48] &quot;mx.symbol.Deconvolution&quot;            
+##  [49] &quot;mx.symbol.degrees&quot;                  
+##  [50] &quot;mx.symbol.dot&quot;                      
+##  [51] &quot;mx.symbol.Dropout&quot;                  
+##  [52] &quot;mx.symbol.ElementWiseSum&quot;           
+##  [53] &quot;mx.symbol.elemwise_add&quot;             
+##  [54] &quot;mx.symbol.Embedding&quot;                
+##  [55] &quot;mx.symbol.exp&quot;                      
+##  [56] &quot;mx.symbol.expand_dims&quot;              
+##  [57] &quot;mx.symbol.expm1&quot;                    
+##  [58] &quot;mx.symbol.fill_element_0index&quot;      
+##  [59] &quot;mx.symbol.fix&quot;                      
+##  [60] &quot;mx.symbol.Flatten&quot;                  
+##  [61] &quot;mx.symbol.flip&quot;                     
+##  [62] &quot;mx.symbol.floor&quot;                    
+##  [63] &quot;mx.symbol.FullyConnected&quot;           
+##  [64] &quot;mx.symbol.gamma&quot;                    
+##  [65] &quot;mx.symbol.gammaln&quot;                  
+##  [66] &quot;mx.symbol.Group&quot;                    
+##  [67] &quot;mx.symbol.identity&quot;                 
+##  [68] &quot;mx.symbol.IdentityAttachKLSparseReg&quot;
+##  [69] &quot;mx.symbol.infer.shape&quot;              
+##  [70] &quot;mx.symbol.InstanceNorm&quot;             
+##  [71] &quot;mx.symbol.L2Normalization&quot;          
+##  [72] &quot;mx.symbol.LeakyReLU&quot;                
+##  [73] &quot;mx.symbol.LinearRegressionOutput&quot;   
+##  [74] &quot;mx.symbol.load&quot;                     
+##  [75] &quot;mx.symbol.load.json&quot;                
+##  [76] &quot;mx.symbol.log&quot;                      
+##  [77] &quot;mx.symbol.log10&quot;                    
+##  [78] &quot;mx.symbol.log1p&quot;                    
+##  [79] &quot;mx.symbol.log2&quot;                     
+##  [80] &quot;mx.symbol.LogisticRegressionOutput&quot; 
+##  [81] &quot;mx.symbol.LRN&quot;                      
+##  [82] &quot;mx.symbol.MAERegressionOutput&quot;      
+##  [83] &quot;mx.symbol.MakeLoss&quot;                 
+##  [84] &quot;mx.symbol.max&quot;                      
+##  [85] &quot;mx.symbol.max_axis&quot;                 
+##  [86] &quot;mx.symbol.min&quot;                      
+##  [87] &quot;mx.symbol.min_axis&quot;                 
+##  [88] &quot;mx.symbol.nanprod&quot;                  
+##  [89] &quot;mx.symbol.nansum&quot;                   
+##  [90] &quot;mx.symbol.negative&quot;                 
+##  [91] &quot;mx.symbol.norm&quot;                     
+##  [92] &quot;mx.symbol.normal&quot;                   
+##  [93] &quot;mx.symbol.Pad&quot;                      
+##  [94] &quot;mx.symbol.Pooling&quot;                  
+##  [95] &quot;mx.symbol.prod&quot;                     
+##  [96] &quot;mx.symbol.radians&quot;                  
+##  [97] &quot;mx.symbol.Reshape&quot;                  
+##  [98] &quot;mx.symbol.rint&quot;                     
+##  [99] &quot;mx.symbol.RNN&quot;                      
+## [100] &quot;mx.symbol.ROIPooling&quot;               
+## [101] &quot;mx.symbol.round&quot;                    
+## [102] &quot;mx.symbol.rsqrt&quot;                    
+## [103] &quot;mx.symbol.save&quot;                     
+## [104] &quot;mx.symbol.SequenceLast&quot;             
+## [105] &quot;mx.symbol.SequenceMask&quot;             
+## [106] &quot;mx.symbol.SequenceReverse&quot;          
+## [107] &quot;mx.symbol.sgd_mom_update&quot;           
+## [108] &quot;mx.symbol.sgd_update&quot;               
+## [109] &quot;mx.symbol.sign&quot;                     
+## [110] &quot;mx.symbol.sin&quot;                      
+## [111] &quot;mx.symbol.sinh&quot;                     
+## [112] &quot;mx.symbol.slice_axis&quot;               
+## [113] &quot;mx.symbol.SliceChannel&quot;             
+## [114] &quot;mx.symbol.smooth_l1&quot;                
+## [115] &quot;mx.symbol.Softmax&quot;                  
+## [116] &quot;mx.symbol.SoftmaxActivation&quot;        
+## [117] &quot;mx.symbol.softmax_cross_entropy&quot;    
+## [118] &quot;mx.symbol.SoftmaxOutput&quot;            
+## [119] &quot;mx.symbol.sort&quot;                     
+## [120] &quot;mx.symbol.SpatialTransformer&quot;       
+## [121] &quot;mx.symbol.sqrt&quot;                     
+## [122] &quot;mx.symbol.square&quot;                   
+## [123] &quot;mx.symbol.sum&quot;                      
+## [124] &quot;mx.symbol.sum_axis&quot;                 
+## [125] &quot;mx.symbol.SVMOutput&quot;                
+## [126] &quot;mx.symbol.SwapAxis&quot;                 
+## [127] &quot;mx.symbol.tan&quot;                      
+## [128] &quot;mx.symbol.tanh&quot;                     
+## [129] &quot;mx.symbol.topk&quot;                     
+## [130] &quot;mx.symbol.transpose&quot;                
+## [131] &quot;mx.symbol.uniform&quot;                  
+## [132] &quot;mx.symbol.UpSampling&quot;               
+## [133] &quot;mx.symbol.Variable&quot;</code></pre>
+<p>Если в названии функции последнее слово начинается с большой буквы - эта функция создает слой; если в конце имеется слово Output, то в этом “символе” есть не только выходной слой нейросети, но и функция потерь вместе со всем необходимым для операций обратного распространения ошибки. Например, функция <code>mx.symbol.SoftmaxActivation()</code> создает слой с активацией softmax, после которого можно указать свою собственную функцию потерь. А если использовать <code>mx.symbol.SoftmaxOutput</code>, то перекрестная энтропия (cross-entropy, в данном случае это синоним logloss) сразу будет использоваться в качестве функции потерь.</p>
+<p>Остальные функции отвечают за операции над “символами”, которые являются аналогами соответствующих операций над значениями. Для арифметических операторов <code>+</code>, <code>-</code>, <code>*</code> и <code>/</code> добавлены соответствующие методы.</p>
+<p>В руководстве <a href="https://github.com/dmlc/mxnet/blob/master/docs/tutorials/r/CustomLossFunction.md">Customized loss function</a> рассматривается создание собственной функции потерь с помощью <code>mx.symbol.MakeLoss()</code>, также полезные материалы есть по <a href="https://github.com/dmlc/mxnet/issues/3368">этой ссылке</a>. Выглядит это вот так:</p>
+<pre class="r"><code>data &lt;- mx.symbol.Variable(&quot;data&quot;)
+
+fc1 &lt;- mx.symbol.FullyConnected(data, num_hidden=1)
+
+lro &lt;- mx.symbol.MakeLoss(mx.symbol.square(mx.symbol.Reshape(fc1, shape = 0) - label))
+# Аналог mx.symbol.LinearRegressionOutput()</code></pre>
+</div>
+<div id="ch7" class="section level2">
+<h2>7. Использование активаций скрытых слоев</h2>
+<p>Активации скрытых слоев нейросети можно использовать как для визуализации ее работы, так и в качестве признаков для других алгоритмов машинного обучения. Особенно это полезно, когда данных для обучения с нуля своей нейросети не хватает. В таком случае можно взять предобученную сеть для того же класса задач и получить не только финальные предсказания (которые скорее всего будут бесполезными), но и активации, например, последнего полносвязного слоя. Такие активации могут содержать высокоуровневые признаки, релевантные для решаемой задачи.</p>
+<p>Руководства от разработчиков на эту тему пока нет, но в <a href="https://github.com/dmlc/mxnet/issues/1152">обсуждении</a> приводится готовое решение. Модель обучается обычным образом, дополнительно создается <code>executor</code> - объект, параметры которого можно обновить, используя параметры обученной модели. В конце выполняем forward pass и получаем значения на нужных нам слоях:</p>
+<pre class="r"><code># Group some output layers for visual analysis
+out &lt;- mx.symbol.Group(c(convAct1, poolLayer1, convAct2, poolLayer2, LeNet1))
+# Create an executor
+executor &lt;- mx.simple.bind(symbol = out, 
+                           data = dim(test.array), 
+                           ctx = mx.cpu())
+
+# Update parameters
+mx.exec.update.arg.arrays(executor, 
+                          model$arg.params, 
+                          match.name = TRUE)
+mx.exec.update.aux.arrays(executor, 
+                          model$aux.params, 
+                          match.name = TRUE)
+# Select data to use
+mx.exec.update.arg.arrays(executor, 
+                          list(data = mx.nd.array(test.array)), 
+                          match.name = TRUE)
+# Do a forward pass with the current parameters and data
+mx.exec.forward(executor, 
+                is.train = FALSE)
+names(executor$ref.outputs)</code></pre>
+<p>Предобученную модель можно использовать и другим образом: можно дообучить ее на своих данных, подобно тому, как мы продолжаем обучение своей собственной модели с “контрольной точки”. Также можно при этом поменять конфигурация сети - см. <a href="http://mxnet.io/how_to/finetune.html">руководство для Python</a>. Наверное, в R проще всего отредактировать .json-файл, содержащий описание архитектуры сети: сохраняем <code>resnet$as.json()</code>, редактируем, загружаем файл с помощью <code>mx.symbol.load()</code>.</p>
+<p>Продолжение, надеюсь, следует, но уже немного в другом формате.</p>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
