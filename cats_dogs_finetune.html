@@ -126,6 +126,8 @@ $(document).ready(function () {
 
 <div id="packages-and-prerequisites" class="section level2">
 <h2>1. Packages and prerequisites</h2>
+<p>Ubuntu 16, <strong>mxnet</strong> 0.9.4 (compiled with GPU support), <strong>imager</strong> for image processind, <strong>abind</strong> for manipulations with arrays. It is almost end-to-end R solution for Kaggle competition <a href="https://www.kaggle.com/c/dogs-vs-cats-redux-kernels-edition/" class="uri">https://www.kaggle.com/c/dogs-vs-cats-redux-kernels-edition/</a>, we will use Python only for creating .rec-files.</p>
+<p>Thanks to (jeremiedb)[<a href="https://github.com/jeremiedb" class="uri">https://github.com/jeremiedb</a>], my code for fine-tuning largely based on his (answers)[<a href="https://github.com/dmlc/mxnet/issues/4817" class="uri">https://github.com/dmlc/mxnet/issues/4817</a>].</p>
 <pre class="r"><code>knitr::opts_chunk$set(eval = FALSE)</code></pre>
 <pre class="r"><code>library(imager)
 library(mxnet)
@@ -279,8 +281,8 @@ arg_params_new &lt;- inception_bn$arg.params
 arg_params_new[[&quot;fc1_weight&quot;]] &lt;- fc1_weights_new 
 arg_params_new[[&quot;fc1_bias&quot;]] &lt;- fc1_bias_new </code></pre>
 </div>
-<div id="train-model" class="section level2">
-<h2>5. Train model</h2>
+<div id="train-fine-tune-model" class="section level2">
+<h2>5. Train (fine-tune ) model</h2>
 <pre class="r"><code>model &lt;- mx.model.FeedForward.create(
   symbol             = new_soft,
   X                  = train,
@@ -322,6 +324,7 @@ arg_params_new[[&quot;fc1_bias&quot;]] &lt;- fc1_bias_new </code></pre>
   aux.params         = model$aux.params
 )</code></pre>
 <pre class="r"><code>model &lt;- mx.model.load(&quot;inception_bn&quot;, 1)</code></pre>
+<p>My R session crashed after each iteration, so I made some iterations manually.</p>
 </div>
 <div id="make-predictions" class="section level2">
 <h2>6. Make predictions</h2>
