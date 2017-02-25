@@ -248,7 +248,7 @@ val   &lt;- data$val</code></pre>
 </div>
 <div id="load-pretrained-model" class="section level2">
 <h2>4. Load pretrained model</h2>
-<p>Model from <a href="http://data.dmlc.ml/models/imagenet/" class="uri">http://data.dmlc.ml/models/imagenet/</a></p>
+<p>Model from <a href="http://data.dmlc.ml/models/imagenet/" class="uri">http://data.dmlc.ml/models/imagenet/</a> Last fully connected layes for 1000 classes replaced with new layer for 2 classes.</p>
 <pre class="r"><code>inception_bn &lt;- mx.model.load(&quot;models/inception_bn/Inception-BN&quot;, 
                               iteration = 126)
 
@@ -282,7 +282,7 @@ arg_params_new[[&quot;fc1_weight&quot;]] &lt;- fc1_weights_new
 arg_params_new[[&quot;fc1_bias&quot;]] &lt;- fc1_bias_new </code></pre>
 </div>
 <div id="train-fine-tune-model" class="section level2">
-<h2>5. Train (fine-tune ) model</h2>
+<h2>5. Train (fine-tune) model</h2>
 <pre class="r"><code>model &lt;- mx.model.FeedForward.create(
   symbol             = new_soft,
   X                  = train,
