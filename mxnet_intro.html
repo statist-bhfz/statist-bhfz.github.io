@@ -409,7 +409,7 @@ resnet &lt;- get_symbol(10)</code></pre>
   wd                 = 0.00001,
   kvstore            = &quot;local&quot;,
   array.batch.size   = 100,
-  epoch.end.callback =  mx.callback.save.checkpoint(&quot;resnet&quot;),
+  epoch.end.callback = mx.callback.save.checkpoint(&quot;resnet&quot;),
   batch.end.callback = mx.callback.log.train.metric(150),
   initializer        = mx.init.Xavier(factor_type = &quot;in&quot;, magnitude = 2.34),
   optimizer          = &quot;sgd&quot;
