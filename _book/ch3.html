@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>3 Построение деревьев решений CART с помощью пакета R rpart | Деревянные алгоритмы в R и Python</title>
+  <meta name="description" content="3 Построение деревьев решений CART с помощью пакета R rpart | Деревянные алгоритмы в R и Python." />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="3 Построение деревьев решений CART с помощью пакета R rpart | Деревянные алгоритмы в R и Python" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="3 Построение деревьев решений CART с помощью пакета R rpart | Деревянные алгоритмы в R и Python." />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="3 Построение деревьев решений CART с помощью пакета R rpart | Деревянные алгоритмы в R и Python" />
+  
+  <meta name="twitter:description" content="3 Построение деревьев решений CART с помощью пакета R rpart | Деревянные алгоритмы в R и Python." />
+  
+
+<meta name="author" content="Артем Груздев, Андрей Огурцов" />
+
+
+<meta name="date" content="2020-07-31" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="ch2.html"/>
+
+<script src="libs/header-attrs-2.3/header-attrs.js"></script>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Вступление</a></li>
+<li class="chapter" data-level="1" data-path="ch1.html"><a href="ch1.html"><i class="fa fa-check"></i><b>1</b> Введение в метод деревьев решений</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="ch1.html"><a href="ch1.html#ch1.1"><i class="fa fa-check"></i><b>1.1</b> Введение в методологию деревьев решений</a></li>
+<li class="chapter" data-level="1.2" data-path="ch1.html"><a href="ch1.html#ch1.2"><i class="fa fa-check"></i><b>1.2</b> Краткий обзор методов деревьев решений CHAID и CART</a></li>
+<li class="chapter" data-level="1.3" data-path="ch1.html"><a href="ch1.html#ch1.3"><i class="fa fa-check"></i><b>1.3</b> Преимущества и недостатки деревьев решений</a></li>
+<li class="chapter" data-level="1.4" data-path="ch1.html"><a href="ch1.html#ch1.4"><i class="fa fa-check"></i><b>1.4</b> Задачи, выполняемые с помощью деревьев решений</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="ch2.html"><a href="ch2.html"><i class="fa fa-check"></i><b>2</b> Построение деревьев решений CHAID с помощью пакета R CHAID</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="ch2.html"><a href="ch2.html#ch2.1"><i class="fa fa-check"></i><b>2.1</b> Знакомство с методом CHAID</a>
+<ul>
+<li class="chapter" data-level="2.1.1" data-path="ch2.html"><a href="ch2.html#ch2.1.1"><i class="fa fa-check"></i><b>2.1.1</b> Описание алгоритма</a></li>
+<li class="chapter" data-level="2.1.2" data-path="ch2.html"><a href="ch2.html#ch2.1.2"><i class="fa fa-check"></i><b>2.1.2</b> Немного о критерии хи-квадрат</a></li>
+<li class="chapter" data-level="2.1.3" data-path="ch2.html"><a href="ch2.html#ch2.1.3"><i class="fa fa-check"></i><b>2.1.3</b> Немного об F-критерии</a></li>
+<li class="chapter" data-level="2.1.4" data-path="ch2.html"><a href="ch2.html#ch2.1.4"><i class="fa fa-check"></i><b>2.1.4</b> Способы объединения категорий предикторов</a></li>
+<li class="chapter" data-level="2.1.5" data-path="ch2.html"><a href="ch2.html#ch2.1.5"><i class="fa fa-check"></i><b>2.1.5</b> Поправка Бонферрони</a></li>
+<li class="chapter" data-level="2.1.6" data-path="ch2.html"><a href="ch2.html#ch2.1.6"><i class="fa fa-check"></i><b>2.1.6</b> XCHAID</a></li>
+<li class="chapter" data-level="2.1.7" data-path="ch2.html"><a href="ch2.html#ch2.1.7"><i class="fa fa-check"></i><b>2.1.7</b> Иллюстрация работы CHAID на конкретном примере</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="ch2.html"><a href="ch2.html#ch2.2"><i class="fa fa-check"></i><b>2.2</b> Предварительная подготовка данных перед построением модели дерева CHAID</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="ch2.html"><a href="ch2.html#ch2.2.1"><i class="fa fa-check"></i><b>2.2.1</b> Загрузка данных</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="ch3.html"><a href="ch3.html"><i class="fa fa-check"></i><b>3</b> Построение деревьев решений CART с помощью пакета R rpart</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="ch3.html"><a href="ch3.html#ch3.1"><i class="fa fa-check"></i><b>3.1</b> Знакомство с методом CART</a>
+<ul>
+<li class="chapter" data-level="3.1.1" data-path="ch3.html"><a href="ch3.html#ch3.1.1"><i class="fa fa-check"></i><b>3.1.1</b> Описание алгоритма</a></li>
+<li class="chapter" data-level="3.1.2" data-path="ch3.html"><a href="ch3.html#ch3.1.2"><i class="fa fa-check"></i><b>3.1.2</b> Неоднородность</a></li>
+<li class="chapter" data-level="3.1.3" data-path="ch3.html"><a href="ch3.html#ch3.1.3"><i class="fa fa-check"></i><b>3.1.3</b> Метод отсечения ветвей на основе меры стоимости-сложности с перекрестной проверкой</a></li>
+<li class="chapter" data-level="3.1.4" data-path="ch3.html"><a href="ch3.html#ch3.1.4"><i class="fa fa-check"></i><b>3.1.4</b> Обработка пропущенных значений</a></li>
+<li class="chapter" data-level="3.1.5" data-path="ch3.html"><a href="ch3.html#ch3.1.5"><i class="fa fa-check"></i><b>3.1.5</b> Иллюстрация работы метода CART на конкретных примерах</a></li>
+</ul></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Деревянные алгоритмы в R и Python</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ch3" class="section level1" number="3" style="text-align: justify">
+<h1><span class="header-section-number">3</span> Построение деревьев решений CART с помощью пакета R rpart</h1>
+<div id="ch3.1" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Знакомство с методом CART</h2>
+<p>Алгоритм метода CART был опубликован в 1984 году в книге «Classification and regression trees» («Деревья классификации и регрессии»), авторами которой являются Лео Брейман (Калифорнийский университет в Беркли), Джером Фридман (Стэнфордский университет), Ричард Олшен (Калифорнийский университет в Беркли) и Чарльз
+Стоун (Стэнфордский университет).</p>
+<p>Как уже ясно из названия, CART включает два вида анализа: деревья классификации для категориальных зависимых переменных и регрессионные деревья для количественных зависимых переменных. Эти виды анализа отличаются в деталях, но используют общий принцип.</p>
+<p>CART выполняет последовательные бинарные разбиения данных на основе выбранного критерия. В отличие от CHAID, в CART для выбора предиктора расщепления не применяются статистические критерии. Вместо этого в каждом узле при расщеплении данных используется предиктор, обеспечивающий наибольшее улучшение по выбранному критерию. Ключевой элемент в методе CART – это отсечение ветвей дерева, известный под названием «отсечение с минимизацией стоимости-сложности» (minimal cost-complexity pruning). Деревья, построенные c помощью метода CART, имеют тенденцию быть слишком большими, а результаты не воспроизводятся с необходимой степенью устойчивости. Авторы метода пришли к выводу, что если разрешить построение максимально большого дерева, но затем отсечь его ветви, используя более сложный критерий, то в результате будет построено меньшее дерево лучшего качества. Построение дерева с последующим отсечением его ветвей стало основой метода CART.</p>
+<div id="ch3.1.1" class="section level3" number="3.1.1">
+<h3><span class="header-section-number">3.1.1</span> Описание алгоритма</h3>
+<p>Алгоритм CART строит дерево, итеративно применяя к каждому узлу, начиная с корневого, процедуры выбора наилучшего расщепления предиктора, выбора наилучшего расщепления узла и остановки. В качестве критерия расщепления алгоритм использует уменьшение неоднородности при разбиении родительского узла на дочерние узлы (см. раздел <em>3.1.2. Неоднородность</em>).</p>
+<p><strong>Этап 1. Выбор наилучшего расщепления предиктора</strong></p>
+<p>1. Алгоритм начинает с поиска наилучшей точки расщепления (разделяющего значения) для каждого предиктора. Для количественных и порядковых предикторов алгоритм выполняет сортировку значений в порядке возрастания. Затем алгоритм разбивает предиктор по всем возможным точкам расщепления (разделяющим значениям). Если имеются 6 различных значений возраста, они будут упорядочены и для них будет созданы 5 точек расщепления.</p>
+<p>Например, есть значения возраста 18, 35, 20, 16, 11, 10. Они будут упорядочены: 10, 11, 16, 18, 20 и 35. Будет рассмотрено пять расщепляющих значений:</p>
+<pre><code>&lt; 11 s ≥ 11
+&lt; 16 s ≥ 16
+&lt; 18 s ≥ 18
+&lt; 20 s ≥ 20 
+&lt; 35 s ≥ 35</code></pre>
+<p>Именно эта стратегия используется в пакете R rpart.</p>
+<p>Для номинального предиктора его категории делятся всеми возможными способами на две группы.</p>
+<p>В каждой возможной точке расщепления переменной вся выборка наблюдений гипотетически разбивается на два дочерних узла: левый и правый. Все наблюдения, у которых значение предиктора меньше точки расщепления, относятся в левый дочерний узел. Все наблюдения, у которых значение предиктора больше или равно точке расщепления, относятся в правый дочерний узел.</p>
+<p>2. Алгоритм вычисляет уменьшение неоднородности для каждой точки расщепления.</p>
+<p>3. В качестве наилучшей точки расщепления предиктора алгоритма выбирается точка расщепления, дающая наибольшее уменьшение неоднородности при разбиении родительского узла на дочерние узлы.
+Вышеописанные шаги повторяются для всех остальных переменных.</p>
+<p><strong>Этап 2. Выбор наилучшего расщепления узла</strong></p>
+<p>1. Из наилучших точек расщеплений предикторов, полученных на первом этапе, алгоритм выбирает точку расщепления, максимизирующую уменьшение неоднородности (проще говоря, из лучших расщеплений для каждого предиктоа выбирается наилучшее).</p>
+<p>2. Алгоритм расщепляет узел, используя найденную для него наилучшую точку расщепления, если это позволяют правила остановки. Обратите внимание, что каждый предиктор может неоднократно использоваться для расщепления в ветви дерева. Например, может быть выполнено расщепление по переменной Возраст в значении 60 лет, а затем в узле-потомке снова может быть выполнено расщепление по этой переменной. Таким образом, могут моделироваться сложные зависимости между непрерывным предиктором и зависимой переменной, несмотря на то, что выполняются только бинарные расщепления.</p>
+<p><strong>Этап 3. Остановка</strong></p>
+<p>Алгоритм проверяет, нужно ли прекратить построение дерева, в соответствии со следующими правилами остановки.</p>
+<p>1. Если узел стал однородным, то есть все наблюдения в узле имеют одинаковые значения зависимой переменной, узел не разбивается.</p>
+<p>2. Если при выполнении разбиения уменьшение ошибки модели становится меньше порогового значения штрафа за сложность, процесс построения дерева останавливается.</p>
+<p>3. Если количество наблюдений в родительском узле меньше заданного пользователем минимума наблюдений в родительском узле, узел не разбивается.</p>
+<p>4. Если минимальное количество наблюдений в терминальном узле меньше заданного пользователем минимума наблюдений в терминальном узле, узел не разбивается.</p>
+<p>5. Если текущая глубина дерева достигает заданной пользователем максимальной глубины дерева, процесс построения дерева останавливается.</p>
+<p><em>ПРИМЕЧАНИЕ</em></p>
+<p>В пакете R <code>rpart</code> с помощью ряда параметров вспомогательной функции <code>rpart.control</code> можно изменить некоторые вышеперечисленные правила остановки:</p>
+<ul>
+<li><p><code>cp</code> задает штраф за сложность: если разбиение уменьшает ошибку модели на значение, меньшее порогового значения <code>cp</code>, оно не принимается и дерево останавливается в росте;</p></li>
+<li><p><code>minsplit</code> задает минимальное количество наблюдений в родительском узле перед расщеплением, по умолчанию 20;</p></li>
+<li><p><code>minbucket</code> задает минимальное количество наблюдений в терминальном узле, по умолчанию используется округленное значение <code>minsplit/3</code>;</p></li>
+<li><p><code>maxdepth</code> задает максимальную глубину дерева (количество уровней дерева, лежащих ниже корневого узла), по умолчанию равна 30.</p></li>
+</ul>
+</div>
+<div id="ch3.1.2" class="section level3" number="3.1.2">
+<h3><span class="header-section-number">3.1.2</span> Неоднородность</h3>
+<p>При построении дерева CART расщепляет узел на два дочерних узла по предиктору, который обеспечивает наибольшее уменьшение неоднородности. Для этого неоднородность родительского узла сравнивается со взвешенным средним значением неоднородностей дочерних узлов:</p>
+<p><span class="math display">\[\Delta i=i_{P}-\left(\frac{n_{L}}{n_{P}}i_{L} + \frac{n_{R}}{n_{P}}i_{R}\right),\]</span></p>
+<p>где</p>
+<p><span class="math inline">\(\Delta i\)</span> – уменьшение неоднородности;</p>
+<p><span class="math inline">\(i_{p}\)</span> – неоднородность родительского узла;</p>
+<p><span class="math inline">\(\left(\frac{n_{L}}{n_{P}}i_{L} + \frac{n_{R}}{n_{P}}i_{R}\right)\)</span> – взвешенное среднее значение неоднородностей дочерних узлов:</p>
+<p><span class="math inline">\(n_{L}\)</span> – количество наблюдений в левом дочернем узле;</p>
+<p><span class="math inline">\(n_{R}\)</span> – количество наблюдений в правом дочернем узле;</p>
+<p><span class="math inline">\(n_{P}\)</span> – количество наблюдений в родительском узле;</p>
+<p><span class="math inline">\(i_{L}\)</span> – неоднородность левого дочернего узла;</p>
+<p><span class="math inline">\(i_{R}\)</span> – неоднородность правого дочернего узла.</p>
+<p>Применительно к дереву классификации CART под неоднородностью понимается неоднородность распределения классов зависимой переменной в узле. Однородным узлом является тот, в котором все наблюдения относятся к одному и тому же классу зависимой переменной, в то время как узел с максимальной неоднородностью содержит равное количество наблюдений во всех классах зависимой переменной. Допустим, есть узел, содержащий 6 наблюдений, относящимся к одному из двух классов. Максимальная неоднородность в узле будет достигнута при разбиении его на два класса по 3 наблюдения в каждом, а минимальная неоднородность – при разбиении на 6 наблюдений одного класса и 0 наблюдений другого класса.</p>
+<p><img src="figures/3.1.PNG" /></p>
+<p><em>Рис. 3.1. Примеры, иллюстрирующие минимальную и максимальную неоднородность</em></p>
+<p>Наиболее популярная мера неоднородности для деревьев классификации – <strong>мера Джини</strong>. В основе меры Джини лежат возведенные в квадрат вероятности, с которыми наблюдения будут отнесены к каждому классу зависимой переменной.</p>
+<p>Общая формула для вычисления меры Джини выглядит так:</p>
+<p><span class="math display">\[Gini(t)=1-\sum^{K}_{k=1}p^{2}_{k},\]</span></p>
+<p>где</p>
+<p><span class="math inline">\(K\)</span> – количество классов зависимой переменной;</p>
+<p><span class="math inline">\(k\)</span> – класс зависимой переменной;</p>
+<p><span class="math inline">\(p_{k}\)</span> – вероятность <span class="math inline">\(k\)</span>-того класса зависимой переменной в <span class="math inline">\(t\)</span>-ом узле.</p>
+<p>Для бинарной зависимой переменной мера Джини принимает вид:</p>
+<p><span class="math display">\[Gini(t)=1-p^{2}_{1}-p^{2}_{0},\]</span></p>
+<p>где</p>
+<p><span class="math inline">\(p^{2}_{1}\)</span> – вероятность класса 1 (положительного класса) в <span class="math inline">\(t\)</span>-ом узле;</p>
+<p><span class="math inline">\(p^{2}_{0}\)</span> – вероятность класса 0 (отрицательного класса) в <span class="math inline">\(t\)</span>-ом узле.</p>
+<p>Когда наблюдения в узле равномерно распределены по категориям, мера Джини принимает свое максимальное значение (для бинарной зависимой переменной максимальное значение меры Джини равно 0,5). Когда все наблюдения в узле принадлежат к одному и тому же классу, мера Джини равна 0.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Распределение в узлах</th>
+<th>Мера Джини</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Узел с распределением (1, 0)</td>
+<td>Мера Джини = 1 – 1<sup>2</sup> – 0<sup>2</sup> = 0</td>
+</tr>
+<tr class="even">
+<td>Узел с распределением (0,5, 0,5)</td>
+<td>Мера Джини = 1 – 0,5<sup>2</sup> – 0,5<sup>2</sup> = 0,5</td>
+</tr>
+<tr class="odd">
+<td>Узел с распределением (0,7, 0,3)</td>
+<td>Мера Джини = 1 – 0,7<sup>2</sup> – 0,3<sup>2</sup> = 0,42</td>
+</tr>
+</tbody>
+</table>
+<p>Кроме меры Джини часто используется энтропия. Она вычисляется по формуле:</p>
+<p><span class="math display">\[E(t)=-\sum^{K}_{k=1}p_{k}\times log_{2}p_{k}\]</span></p>
+<p>Обе меры показаны на рис. 3.2, где можно четко увидеть, что энтропия (мера Джини) минимальна, когда все наблюдения либо принадлежат отрицательному классу, либо принадлежат положительному классу, и максимальна в случае одинакового количества наблюдений каждого класса.</p>
+<p><img src="figures/3.2.PNG" /></p>
+<p><em>Рис. 3.2. Сравнение меры Джини и энтропии для двух классов</em></p>
+<p>Применительно к дереву регрессии CART под неоднородностью понимается степень разброса значений количественной зависимой переменной вокруг среднего значения в узле. Более точно, речь идет о <strong>среднеквадратичной ошибке</strong> – сумме квадратов остатков (разностей между фактическими значениями зависимой переменной и ее средним значением) в конкретном узле, поделенной на количество наблюдений в этом узле.</p>
+<p><span class="math display">\[MSE(t)=\frac{1}{n_{t}} \sum_{i}(y_{it}- \bar{y_{t}})^2,\]</span></p>
+<p>где</p>
+<p><span class="math inline">\(y_{it}\)</span> – фактическое значение зависимой переменной для <span class="math inline">\(i\)</span>-того наблюдения в t-ом узле;</p>
+<p><span class="math inline">\(\bar{y_{t}}\)</span> – среднее значение зависимой переменной для в <span class="math inline">\(t\)</span>-ом узле;</p>
+<p><span class="math inline">\(n_{t}\)</span> – количество наблюдений в t-ом узле.</p>
+</div>
+<div id="ch3.1.3" class="section level3" number="3.1.3">
+<h3><span class="header-section-number">3.1.3</span> Метод отсечения ветвей на основе меры стоимости-сложности с перекрестной проверкой</h3>
+<p>При использовании критерия неоднородности для построения дерева возникает следующая проблема. Увеличивая размеры дерева, почти всегда можно уменьшить неоднородность. Любое дерево будет иметь нулевую неоднородность, если оно построено достаточно большим. В частности, если в каждом терминальном узле имеется только одно наблюдение, то неоднородность равна нулю. По мере увеличения размеров дерево становится более сложным, а ошибка модели на обучающей выборке уменьшается вплоть до 0, когда каждое наблюдение находится в отдельном узле. Но такая ситуация чревата переобучением, когда на новых данных качество модели будет гораздо хуже полученного на обучающей выборке. В итоге, несмотря на высокий процент правильных прогнозов на обучающей выборке, большие деревья могут обладать плохой обобщающей способностью. Поэтому необходимо найти баланс между сложностью и ошибкой модели.</p>
+<p>Для решения этих проблем разработчики CART ввели меру стоимости-сложности, которая включает штраф, возрастающий с увеличением размера дерева. Эта функция для дерева (или его ветви) обычно выражается как <span class="math inline">\(R_{\alpha}=R(T)-\alpha \lvert T \rvert\)</span>, где <span class="math inline">\(R(T)\)</span> – ошибка модели, рассчитанная по тем же данным, по которым строилось дерево; <span class="math inline">\(\alpha\)</span> – коэффициент штрафа; <span class="math inline">\(\lvert T \rvert\)</span> – количество терминальных узлов дерева (или ветви) <span class="math inline">\(T\)</span>.</p>
+<p>Дерево большего размера будет иметь б<em>о</em>льшую меру стоимости-сложности за счет слагаемого <span class="math inline">\(\alpha \lvert T \rvert\)</span>. Для того, чтобы мера стоимости-сложности улучшилась, ошибка модели («стоимость» ошибки) должна уменьшиться на величину, большую, чем штраф за сложность (в пакете R <code>rpart</code> штраф за сложность регулируется гиперпараметром <code>cp</code>).</p>
+<p>Мера стоимости-сложности была протестирована в качестве критерия построения дерева, однако авторы (Брейман, Фридман и др.) констатировали, что построенные таким способом деревья все еще не вполне удовлетворительны – они недостаточно стабильны. Решение этой проблемы привело, в свою очередь, к методу отсечения ветвей на основе критерия максимального уменьшения меры стоимости-сложности (cost-complexity pruning). Его суть сводится к следующему. Сначала строим максимально большое дерево (с небольшим числом наблюдений в узлах – от 1 до 5). Затем отсекаем у него ветви на основе меры стоимости-сложности. Выбираем простейшее дерево с наименьшим числом узлов, ошибка которого находится в пределах одной стандартной ошибки от минимальной ошибки, достигнутой на этапе построения дерева. В качестве ошибки для дерева классификации берется ошибка классификации, а для дерева регрессии таковой будет среднеквадратичная ошибка.</p>
+<p>В дальнейшем этот метод был вновь усовершенствован авторами. В ходе экспериментов было установлено, что управление отсечением и отбор модели необходимо осуществлять, оценивая качество модели не на обучающей выборке, а на контрольных блоках перекрестной проверки (Лео Брейман рекомендовал использовать 10-блочную перекрестную проверку). Мы выбираем дерево, которое дает наименьшую кросс-валидационную ошибку. Кросс-валидационной ошибкой является ошибка классификации (для дерева классификации) или среднеквадратичная ошибка (для дерева регрессии), усредненная по всем контрольным блокам перекрестной проверки. Метод отсечения на основе меры стоимости-сложности с перекрестной проверкой как раз и реализован в пакете <code>rpart</code>.</p>
+</div>
+<div id="ch3.1.4" class="section level3" number="3.1.4">
+<h3><span class="header-section-number">3.1.4</span> Обработка пропущенных значений</h3>
+<p>В методе CART пропущенные значения обрабатываются с использованием переменных-суррогатов. Таким образом, если наблюдение имеет пропущенное значение в переменной, по которой осуществляется разбиение узла, то для выбора дочернего узла, к которому относится данное наблюдение, используется его значение для наилучшей переменной-суррогата. Наилучшей переменной-суррогатом является альтернативная предикторная переменная, дающая наиболее близкое (с использованием меры связи) разбиение к тому, которое дает исходный предиктор.</p>
+</div>
+<div id="ch3.1.5" class="section level3" number="3.1.5">
+<h3><span class="header-section-number">3.1.5</span> Иллюстрация работы метода CART на конкретных примерах</h3>
+<div id="ch3.1.5.1" class="section level4" number="3.1.5.1">
+<h4><span class="header-section-number">3.1.5.1</span> Дерево классификации</h4>
+</div>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="ch2.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
