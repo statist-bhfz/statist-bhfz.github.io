@@ -24,7 +24,7 @@
 <meta name="author" content="Артем Груздев, Андрей Огурцов" />
 
 
-<meta name="date" content="2020-07-31" />
+<meta name="date" content="2020-08-01" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -153,6 +153,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.2" data-path="ch2.html"><a href="ch2.html#ch2.2"><i class="fa fa-check"></i><b>2.2</b> Предварительная подготовка данных перед построением модели дерева CHAID</a>
 <ul>
 <li class="chapter" data-level="2.2.1" data-path="ch2.html"><a href="ch2.html#ch2.2.1"><i class="fa fa-check"></i><b>2.2.1</b> Загрузка данных</a></li>
+<li class="chapter" data-level="2.2.2" data-path="ch2.html"><a href="ch2.html#ch2.2.2"><i class="fa fa-check"></i><b>2.2.2</b> Фиксация пустых строковых значений как пропусков</a></li>
+<li class="chapter" data-level="2.2.3" data-path="ch2.html"><a href="ch2.html#ch2.2.3"><i class="fa fa-check"></i><b>2.2.3</b> Вывод подробной информации о переменных</a></li>
+<li class="chapter" data-level="2.2.4" data-path="ch2.html"><a href="ch2.html#ch2.2.4"><i class="fa fa-check"></i><b>2.2.4</b> Нормализация строковых значений</a></li>
+<li class="chapter" data-level="2.2.5" data-path="ch2.html"><a href="ch2.html#ch2.2.5"><i class="fa fa-check"></i><b>2.2.5</b> Обработка дублирующихся наблюдений</a></li>
+<li class="chapter" data-level="2.2.6" data-path="ch2.html"><a href="ch2.html#ch2.2.6"><i class="fa fa-check"></i><b>2.2.6</b> Изменение типов переменных</a></li>
+<li class="chapter" data-level="2.2.7" data-path="ch2.html"><a href="ch2.html#ch2.2.7"><i class="fa fa-check"></i><b>2.2.7</b> Обработка редких категорий</a></li>
+<li class="chapter" data-level="2.2.8" data-path="ch2.html"><a href="ch2.html#ch2.2.8"><i class="fa fa-check"></i><b>2.2.8</b> Однократное случайное разбиение набора данных на обучающую и контрольную выборки для проверки модели</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="ch3.html"><a href="ch3.html"><i class="fa fa-check"></i><b>3</b> Построение деревьев решений CART с помощью пакета R rpart</a>
@@ -369,7 +376,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Необходимо разработать модель оттока, с помощью которой предполагается классифицировать новых клиентов на лояльных и склонных к уходу.</p>
 <p>Запустим R. Для работы нам потребуются следующие пакеты:</p>
 <ul>
-<li><p><code>dplyr</code>;</p></li>
+<li><p><code>data.table</code>;</p></li>
 <li><p><code>Hmisc</code>;</p></li>
 <li><p><code>stringr</code>;</p></li>
 <li><p><code>car</code>;</p></li>
@@ -378,7 +385,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><p><code>CHAID</code>;</p></li>
 <li><p><code>pROC</code>;</p></li>
 <li><p><code>precrec</code>;</p></li>
-<li><p><code>xlsx</code>.</p></li>
+<li><p><code>readxl</code>.</p></li>
 </ul>
 <p>Давайте установим их с помощью функции <code>install.packages()</code>. Если вы используете консольную версию R, вам будет предложено выбрать постоянный CRAN-репозиторий, из которого будут устанавливаться пакеты.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="ch2.html#cb1-1"></a><span class="kw">install.packages</span>(<span class="st">&quot;data.table&quot;</span>)</span>
@@ -390,54 +397,553 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb1-7"><a href="ch2.html#cb1-7"></a><span class="kw">install.packages</span>(<span class="st">&quot;CHAID&quot;</span>, <span class="dt">repos =</span> <span class="st">&quot;http://R-Forge.R-project.org&quot;</span>)</span>
 <span id="cb1-8"><a href="ch2.html#cb1-8"></a><span class="kw">install.packages</span>(<span class="st">&quot;pROC&quot;</span>)</span>
 <span id="cb1-9"><a href="ch2.html#cb1-9"></a><span class="kw">install.packages</span>(<span class="st">&quot;precrec&quot;</span>)</span>
-<span id="cb1-10"><a href="ch2.html#cb1-10"></a><span class="kw">install.packages</span>(<span class="st">&quot;xlsx&quot;</span>)</span></code></pre></div>
+<span id="cb1-10"><a href="ch2.html#cb1-10"></a><span class="kw">install.packages</span>(<span class="st">&quot;readxl&quot;</span>)</span></code></pre></div>
 <p>Иногда при установке пакетов появляется ошибка: *dependencies название_пакета are not available for package название_ <em>устанавливаемого</em> _пакета*. Это говорит о том, что перед установкой основного пакета вы должны установить требуемые пакеты-зависимости.</p>
 <p>После установки пакетов их можно загрузить для работы с помощью функции <code>library()</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="ch2.html#cb2-1"></a><span class="kw">library</span>(data.table)</span></code></pre></div>
-<pre><code>## data.table 1.13.0 using 4 threads (see ?getDTthreads).  Latest news: r-datatable.com</code></pre>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="ch2.html#cb4-1"></a><span class="kw">library</span>(Hmisc)</span></code></pre></div>
-<pre><code>## Loading required package: lattice</code></pre>
-<pre><code>## Loading required package: survival</code></pre>
-<pre><code>## Loading required package: Formula</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre><code>## Want to understand how all the pieces fit together? Read R for Data Science:
-## https://r4ds.had.co.nz/</code></pre>
-<pre><code>## 
-## Attaching package: &#39;Hmisc&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     format.pval, units</code></pre>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="ch2.html#cb12-1"></a><span class="kw">library</span>(stringr)</span>
-<span id="cb12-2"><a href="ch2.html#cb12-2"></a><span class="kw">library</span>(car)</span></code></pre></div>
-<pre><code>## Loading required package: carData</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="ch2.html#cb14-1"></a><span class="kw">library</span>(imputeMissings)</span></code></pre></div>
-<pre><code>## 
-## Attaching package: &#39;imputeMissings&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:Hmisc&#39;:
-## 
-##     impute</code></pre>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="ch2.html#cb17-1"></a><span class="kw">library</span>(lsr)</span>
-<span id="cb17-2"><a href="ch2.html#cb17-2"></a><span class="kw">library</span>(CHAID)</span></code></pre></div>
-<pre><code>## Loading required package: partykit</code></pre>
-<pre><code>## Loading required package: grid</code></pre>
-<pre><code>## Loading required package: libcoin</code></pre>
-<pre><code>## Loading required package: mvtnorm</code></pre>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="ch2.html#cb22-1"></a><span class="kw">library</span>(pROC)</span></code></pre></div>
-<pre><code>## Type &#39;citation(&quot;pROC&quot;)&#39; for a citation.</code></pre>
-<pre><code>## 
-## Attaching package: &#39;pROC&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     cov, smooth, var</code></pre>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="ch2.html#cb26-1"></a><span class="kw">library</span>(precrec)</span></code></pre></div>
-<pre><code>## 
-## Attaching package: &#39;precrec&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:pROC&#39;:
-## 
-##     auc</code></pre>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="ch2.html#cb29-1"></a><span class="kw">library</span>(readxl)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="ch2.html#cb2-1"></a><span class="kw">library</span>(data.table)</span>
+<span id="cb2-2"><a href="ch2.html#cb2-2"></a><span class="kw">library</span>(Hmisc)</span>
+<span id="cb2-3"><a href="ch2.html#cb2-3"></a><span class="kw">library</span>(stringr)</span>
+<span id="cb2-4"><a href="ch2.html#cb2-4"></a><span class="kw">library</span>(car)</span>
+<span id="cb2-5"><a href="ch2.html#cb2-5"></a><span class="kw">library</span>(imputeMissings)</span>
+<span id="cb2-6"><a href="ch2.html#cb2-6"></a><span class="kw">library</span>(lsr)</span>
+<span id="cb2-7"><a href="ch2.html#cb2-7"></a><span class="kw">library</span>(CHAID)</span>
+<span id="cb2-8"><a href="ch2.html#cb2-8"></a><span class="kw">library</span>(pROC)</span>
+<span id="cb2-9"><a href="ch2.html#cb2-9"></a><span class="kw">library</span>(precrec)</span>
+<span id="cb2-10"><a href="ch2.html#cb2-10"></a><span class="kw">library</span>(readxl)</span></code></pre></div>
 <p>При помощи функции <code>data.table::fread()</code> загрузим файл <em>Churn.csv</em> в таблицу данных <code>dt</code>:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="ch2.html#cb30-1"></a>dt &lt;-<span class="st"> </span><span class="kw">fread</span>(<span class="st">&quot;data/Churn.csv&quot;</span>, <span class="dt">na.strings =</span> <span class="st">&quot;&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="ch2.html#cb3-1"></a>dt &lt;-<span class="st"> </span><span class="kw">fread</span>(<span class="st">&quot;data/Churn.csv&quot;</span>, <span class="dt">dec =</span> <span class="st">&quot;,&quot;</span>) <span class="co"># указываем десятичный разделитель</span></span></code></pre></div>
+</div>
+<div id="ch2.2.2" class="section level3" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> Фиксация пустых строковых значений как пропусков</h3>
+<p>Данные часто содержат пропуски. По умолчанию пропуски для вещественных и целочисленных векторов будут записаны как значения <code>NA</code> (not available – нет в наличии), а пропуски для строк и факторов специально никак не помечаются и представлены как пустые строковые значения (обозначение <code>NA</code> не используется, потому что у фактора может быть действительный уровень <code>"NA"</code>). Кроме того, есть еще недопустимые значения – значения <code>NaN</code> (not a number – не являются числом), а также бесконечные значения – значения <code>Inf</code> и <code>–Inf</code>. Давайте взглянем на первые 10 наблюдений:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="ch2.html#cb4-1"></a><span class="kw">head</span>(dt, <span class="dt">n =</span> <span class="dv">10</span>)</span></code></pre></div>
+<pre><code>##     longdist local int_disc   billtype  pay  gender  marital  income agecat churn
+##  1:       &lt;2    &lt;8      Нет  Бюджетный   CC Мужской    Женат 77680.0    &lt;31     1
+##  2:             &lt;8      Нет Бесплатный   CC Мужской    Женат 37111.5    &lt;31     1
+##  3:       &lt;2    &lt;8      Нет              CC Мужской    Женат      NA            1
+##  4:       &lt;2    &lt;8          Бесплатный   CH Мужской Одинокий      NA    &lt;31     0
+##  5:       &lt;2            Нет Бесплатный Auto         Одинокий 16829.6    &lt;31     1
+##  6:             &lt;8      Нет Бесплатный      Женский Одинокий 57272.7    &lt;31     1
+##  7:             &lt;8      Нет  Бюджетный      Мужской    Женат      NA    &lt;31     1
+##  8:       &lt;2    &lt;8      Нет Бесплатный Auto Мужской               NA    &lt;31     1
+##  9:       &lt;2    &lt;8       Да              CH Мужской Одинокий 92167.3    &lt;31     1
+## 10:       &lt;2    &lt;8      Нет Бесплатный   CC Мужской    Женат 37135.5    &lt;31     1</code></pre>
+<p>Переменные <code>longdist</code>, <code>local</code>, <code>int_disc</code>, <code>billtype</code>, <code>pay</code>, <code>gender</code>, <code>marital</code>, <code>agecat</code> и <code>churn</code> представлены строковыми значениями. При этом переменные <code>longdist</code>, <code>local</code>, <code>int_disc</code>, <code>billtype</code>, <code>pay</code>, <code>gender</code>, <code>marital</code> и agecat в некоторых наблюдениях имеют пустые строковые значения. Переменная <code>income</code>, которая представлена числовыми значениями, в ряде наблюдений имеет значения <code>NA</code>. Пустые строковые значения и значения <code>NA</code> и есть наши фактические пропуски. Обратите внимание, что для корректной обработки пропущенных значений необходимо пометить пустые строковые значения как пропуски. Например, выведем количество пропусков по переменной <code>income</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="ch2.html#cb6-1"></a>dt[, <span class="kw">sum</span>(<span class="kw">is.na</span>(income))]</span></code></pre></div>
+<pre><code>## [1] 4</code></pre>
+<p>Для вычислений сначала используем функцию <code>is.na()</code>, которая определяет, является ли значение пропущенным или нет (возвращает логическое значение <code>TRUE</code> или <code>FALSE</code> соответственно). Затем функция <code>sum()</code> подсчитывает количество пропусков как сумму логических значений <code>TRUE</code>.</p>
+<p>Теперь выведем количество пропусков по переменной <code>pay</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="ch2.html#cb8-1"></a>dt[, <span class="kw">sum</span>(<span class="kw">is.na</span>(pay))]</span></code></pre></div>
+<pre><code>## [1] 0</code></pre>
+<p>Однако мы точно знаем, пропуски есть. Заменим все пустые строковые значения на <code>NA</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="ch2.html#cb10-1"></a><span class="kw">is.na</span>(dt) &lt;-<span class="st"> </span>dt <span class="op">==</span><span class="st"> &quot;&quot;</span></span></code></pre></div>
+<p>Снова выведем первые 10 наблюдений нашей таблицы:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="ch2.html#cb11-1"></a><span class="kw">head</span>(dt, <span class="dt">n =</span> <span class="dv">10</span>)</span></code></pre></div>
+<pre><code>##     longdist local int_disc   billtype  pay  gender  marital  income agecat churn
+##  1:       &lt;2    &lt;8      Нет  Бюджетный   CC Мужской    Женат 77680.0    &lt;31     1
+##  2:     &lt;NA&gt;    &lt;8      Нет Бесплатный   CC Мужской    Женат 37111.5    &lt;31     1
+##  3:       &lt;2    &lt;8      Нет       &lt;NA&gt;   CC Мужской    Женат      NA   &lt;NA&gt;     1
+##  4:       &lt;2    &lt;8     &lt;NA&gt; Бесплатный   CH Мужской Одинокий      NA    &lt;31     0
+##  5:       &lt;2  &lt;NA&gt;      Нет Бесплатный Auto    &lt;NA&gt; Одинокий 16829.6    &lt;31     1
+##  6:     &lt;NA&gt;    &lt;8      Нет Бесплатный &lt;NA&gt; Женский Одинокий 57272.7    &lt;31     1
+##  7:     &lt;NA&gt;    &lt;8      Нет  Бюджетный &lt;NA&gt; Мужской    Женат      NA    &lt;31     1
+##  8:       &lt;2    &lt;8      Нет Бесплатный Auto Мужской     &lt;NA&gt;      NA    &lt;31     1
+##  9:       &lt;2    &lt;8       Да       &lt;NA&gt;   CH Мужской Одинокий 92167.3    &lt;31     1
+## 10:       &lt;2    &lt;8      Нет Бесплатный   CC Мужской    Женат 37135.5    &lt;31     1</code></pre>
+<p>Пустые строковые значения теперь помечены как <code>&lt;NA&gt;</code>: символы <code>&lt;&gt;</code> используются для того, чтобы пропуски можно было отличить от возможного действительного значения <code>"NA"</code>.</p>
+<p>Сумма пропусков по переменной <code>pay</code> после того, как пустые строковые значения были помечены как пропуски:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="ch2.html#cb13-1"></a>dt[, <span class="kw">sum</span>(<span class="kw">is.na</span>(pay))]</span></code></pre></div>
+<pre><code>## [1] 2</code></pre>
+<p>Еще более удобный вариант зафиксировать пустые строковые значения как пропуски – использование при загрузке данных значения параметра <code>na.strings = ""</code> (в нашем примере; при необходимости можно задать вектор из строковых значений, рассматриваемых как пропуски):</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="ch2.html#cb15-1"></a>dt &lt;-<span class="st"> </span><span class="kw">fread</span>(<span class="st">&quot;data/Churn.csv&quot;</span>, <span class="dt">dec =</span> <span class="st">&quot;,&quot;</span>,  <span class="dt">na.strings =</span> <span class="st">&quot;&quot;</span>)</span></code></pre></div>
+</div>
+<div id="ch2.2.3" class="section level3" number="2.2.3">
+<h3><span class="header-section-number">2.2.3</span> Вывод подробной информации о переменных</h3>
+<p>Для проведения предварительной обработки данных необходимо получить более развернутую информацию о переменных. В таких случаях можно воспользоваться функцией <code>describe()</code> из пакета <code>Hmisc</code>, разработанным Фрэнком Харреллом, профессором биостастистики Вандербильтского университета, экспертом Центра оценки и исследований биопрепаратов Управления по санитарному надзору за качеством пищевых продуктов и медикаментов (CDER FDA).</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="ch2.html#cb16-1"></a><span class="kw">describe</span>(dt)</span></code></pre></div>
+<pre><code>## dt 
+## 
+##  10  Variables      4431  Observations
+## ---------------------------------------------------------------------------------------------
+## longdist 
+##        n  missing distinct 
+##     4428        3        5 
+## 
+## lowest : &lt;2    15-20 2-8   21+   9-14 , highest: &lt;2    15-20 2-8   21+   9-14 
+##                                         
+## Value         &lt;2 15-20   2-8   21+  9-14
+## Frequency    738  1055   868   773   994
+## Proportion 0.167 0.238 0.196 0.175 0.224
+## ---------------------------------------------------------------------------------------------
+## local 
+##        n  missing distinct 
+##     4430        1        5 
+## 
+## lowest : &lt;8    21-35 36-55 56+   8-20 , highest: &lt;8    21-35 36-55 56+   8-20 
+##                                         
+## Value         &lt;8 21-35 36-55   56+  8-20
+## Frequency    740  1447   738   741   764
+## Proportion 0.167 0.327 0.167 0.167 0.172
+## ---------------------------------------------------------------------------------------------
+## int_disc 
+##        n  missing distinct 
+##     4430        1        2 
+##                       
+## Value         Да   Нет
+## Frequency   1377  3053
+## Proportion 0.311 0.689
+## ---------------------------------------------------------------------------------------------
+## billtype 
+##        n  missing distinct 
+##     4429        2        2 
+##                                 
+## Value      Бесплатный  Бюджетный
+## Frequency        2185       2244
+## Proportion      0.493      0.507
+## ---------------------------------------------------------------------------------------------
+## pay 
+##        n  missing distinct 
+##     4429        2        4 
+##                                   
+## Value       Auto    CC    CD    CH
+## Frequency    890  2560     2   977
+## Proportion 0.201 0.578 0.000 0.221
+## ---------------------------------------------------------------------------------------------
+## gender 
+##        n  missing distinct 
+##     4430        1        4 
+##                                                   
+## Value        Женский Женский&amp;*   Мужской Мужской&amp;*
+## Frequency       2236         8      2182         4
+## Proportion     0.505     0.002     0.493     0.001
+## ---------------------------------------------------------------------------------------------
+## marital 
+##        n  missing distinct 
+##     4430        1        5 
+## 
+## lowest : _Женат    _Одинокий Же&amp;нат    Женат     Одинокий 
+## highest: _Женат    _Одинокий Же&amp;нат    Женат     Одинокий 
+##                                                             
+## Value         _Женат _Одинокий    Же&amp;нат     Женат  Одинокий
+## Frequency          6         6         2      2620      1796
+## Proportion     0.001     0.001     0.000     0.591     0.405
+## ---------------------------------------------------------------------------------------------
+## income 
+##        n  missing distinct     Info     Mean      Gmd      .05      .10      .25      .50 
+##     4427        4     1456        1    50318    32838     5613    11255    25446    50291 
+##      .75      .90      .95 
+##    75135    90189    94865 
+## 
+## lowest :   110.28   127.24   295.94   349.09   540.41, highest: 99488.10 99514.60 99563.10 99619.90 99832.90
+## ---------------------------------------------------------------------------------------------
+## agecat 
+##        n  missing distinct 
+##     4430        1        5 
+## 
+## lowest : &lt;31   31-45 46-58 59-70 71+  , highest: &lt;31   31-45 46-58 59-70 71+  
+##                                         
+## Value        &lt;31 31-45 46-58 59-70   71+
+## Frequency    755  1306   911   717   741
+## Proportion 0.170 0.295 0.206 0.162 0.167
+## ---------------------------------------------------------------------------------------------
+## churn 
+##        n  missing distinct     Info      Sum     Mean      Gmd 
+##     4431        0        2    0.738     1935   0.4367   0.4921 
+## 
+## ---------------------------------------------------------------------------------------------</code></pre>
+<p>В полученном отчете первой приводится информация о количестве переменных и общем количестве наблюдений. Для каждой категориальной (строковой) переменной приводятся <code>n</code> – количество непропущенных наблюдений, <code>missing</code> – количество пропущенных значений, <code>distinct</code> – количество уникальных значений. Для каждой количественной переменной приводятся <code>n</code> – количество непропущенных наблюдений, <code>missing</code> – количество пропущенных значений, <code>distinct</code> – количество уникальных значений, <code>Info</code> – мера информативности, <code>Mean</code> – среднее значение, <code>Gmd</code> – средняя разность Джини, <code>.05</code> – 5%-ный квантиль, <code>.10</code> – 10%-ный квантиль, <code>.25</code> – 25%-ный квантиль, <code>.50</code> – 50%-ный квантиль (медиана), <code>.75</code> – 75%-ный квантиль, <code>.90</code> – 90%-ный квантиль, <code>.95</code> – 95%-ный квантиль.</p>
+<p>Показатель <code>Info</code> вычисляется как единица минус сумма кубов относительных частот уникальных значений, деленная на единицу минус квадрат обратной величины размера выборки:</p>
+<p><span class="math display">\[Info = \frac{1-\sum^{k}_{i=1}f^3_i}{1-(n^{-1})^2},\]</span>
+где</p>
+<p><span class="math inline">\(f_i\)</span> – частота <span class="math inline">\(i\)</span>-той категории переменной;</p>
+<p><span class="math inline">\(n^{-1}\)</span> – обратная величина размера выборки (единица, деленная на общее количество наблюдений).</p>
+<p>Наименьшие значения информативности получают переменные, имеющее одно уникальное значение, а также бинарные переменные с сильно отличающимися относительными частотами.</p>
+</div>
+<div id="ch2.2.4" class="section level3" number="2.2.4">
+<h3><span class="header-section-number">2.2.4</span> Нормализация строковых значений</h3>
+<p>Обратимся к переменным <code>gender</code> и <code>marital</code> в отчете, сгенерированном функцией <code>Hmisc::describe()</code>. Видно, что значения этих переменных содержат лишние символы:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="ch2.html#cb18-1"></a><span class="kw">describe</span>(dt[, .(gender, marital)])</span></code></pre></div>
+<pre><code>## dt[, .(gender, marital)] 
+## 
+##  2  Variables      4431  Observations
+## ---------------------------------------------------------------------------------------------
+## gender 
+##        n  missing distinct 
+##     4430        1        4 
+##                                                   
+## Value        Женский Женский&amp;*   Мужской Мужской&amp;*
+## Frequency       2236         8      2182         4
+## Proportion     0.505     0.002     0.493     0.001
+## ---------------------------------------------------------------------------------------------
+## marital 
+##        n  missing distinct 
+##     4430        1        5 
+## 
+## lowest : _Женат    _Одинокий Же&amp;нат    Женат     Одинокий 
+## highest: _Женат    _Одинокий Же&amp;нат    Женат     Одинокий 
+##                                                             
+## Value         _Женат _Одинокий    Же&amp;нат     Женат  Одинокий
+## Frequency          6         6         2      2620      1796
+## Proportion     0.001     0.001     0.000     0.591     0.405
+## ---------------------------------------------------------------------------------------------</code></pre>
+<p>Кроме того, распределения значений переменных можно вывести, воспользовавшись функциями <code>lapply()</code> и <code>summary()</code>. Функция <code>lapply()</code> применяет заданную нами функцию (в данном случае <code>summary()</code>) к элементам вектора или списка, возвращая результат в виде списка (буква <code>l</code> в названии <code>lapply</code> означает list – «список»).</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="ch2.html#cb20-1"></a><span class="co"># Для корректной работы функции summary переменную нужно превратить в фактор</span></span>
+<span id="cb20-2"><a href="ch2.html#cb20-2"></a><span class="kw">lapply</span>(dt[, .(gender, marital)], <span class="cf">function</span>(x) <span class="kw">summary</span>(<span class="kw">as.factor</span>(x)))</span></code></pre></div>
+<pre><code>## $gender
+##   Женский Женский&amp;*   Мужской Мужской&amp;*      NA&#39;s 
+##      2236         8      2182         4         1 
+## 
+## $marital
+##    _Женат _Одинокий    Же&amp;нат     Женат  Одинокий      NA&#39;s 
+##         6         6         2      2620      1796         1</code></pre>
+<p>Если нужно вывести только уровни переменных, можно воспользоваться функциями <code>lapply()</code> и <code>levels()</code>:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="ch2.html#cb22-1"></a><span class="kw">lapply</span>(dt[, .(gender, marital)], <span class="cf">function</span>(x) <span class="kw">levels</span>(<span class="kw">as.factor</span>(x)))</span></code></pre></div>
+<pre><code>## $gender
+## [1] &quot;Женский&quot;   &quot;Женский&amp;*&quot; &quot;Мужской&quot;   &quot;Мужской&amp;*&quot;
+## 
+## $marital
+## [1] &quot;_Женат&quot;    &quot;_Одинокий&quot; &quot;Же&amp;нат&quot;    &quot;Женат&quot;     &quot;Одинокий&quot;</code></pre>
+<p>Давайте удалим ненужные символы <code>&amp;*</code>, которыми заканчиваются несколько значений переменной <code>gender</code>, с помощью функции <code>gsub()</code>. Она имеет общий вид <code>gsub(pattern, replacement, x)</code>, где:</p>
+<ul>
+<li><p><code>pattern</code> – подстрока, которую следует найти;</p></li>
+<li><p><code>replacement</code> – подстрока, на которую следует выполнить замену;</p></li>
+<li><p><code>x</code> – строка или вектор строк, по которым выполняется поиск.</p></li>
+</ul>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="ch2.html#cb24-1"></a>dt[, gender <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">&amp;</span><span class="ch">\\</span><span class="st">*&quot;</span>, <span class="st">&quot;&quot;</span>, gender)]</span></code></pre></div>
+<p>Обратите внимание на использование оператора <code>:=</code> из пакета <code>data.table</code>, позволяющего изменять объект без создания копий и повторного присваивания. При работе с большими таблицами это увеличивает скорость выполнения операций и уменьшает расход ОЗУ.</p>
+<p>Для удаления лишних символов в значениях переменной <code>marital</code> воспользуемся альтернативным способом – функцией <code>str_replace_all()</code> пакета <code>stringr</code>. Она имеет общий вид <code>str_replace_all(string, pattern, replacement)</code>, где:</p>
+<ul>
+<li><p><code>x</code> – строка или вектор строк, по которым выполняется поиск;</p></li>
+<li><p><code>pattern</code> – подстрока, которую следует найти;</p></li>
+<li><p><code>replacement</code> – подстрока, на которую следует выполнить замену.</p></li>
+</ul>
+<p>В данном случае для удаления лишних символов мы воспользуемся символьными классами POSIX. На рис. 2.8 приводятся наиболее часто используемые символьные классы POSIX.</p>
+<p><img src="figures/2.8.PNG" /></p>
+<p><em>Риc. 2.8. Наиболее распространенные классы POSIX</em></p>
+<p>Нам понадобится символьный класс <code>[:alnum:]</code>, который находит символы, являющиеся буквами и цифрами. Обратите внимание, что использование класса возможно лишь внутри квадратных скобок. Конструкция <code>[^[:alnum:]]</code> обозначает «найти все символы, не являющиеся буквами и цифрами».</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="ch2.html#cb25-1"></a>dt[, marital <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw">str_replace_all</span>(marital, <span class="st">&quot;[^[:alnum:]]&quot;</span>, <span class="st">&quot;&quot;</span>)]</span></code></pre></div>
+<p>Снова выводим уровни переменных:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="ch2.html#cb26-1"></a><span class="kw">lapply</span>(dt[, .(gender, marital)], <span class="cf">function</span>(x) <span class="kw">levels</span>(<span class="kw">as.factor</span>(x)))</span></code></pre></div>
+<pre><code>## $gender
+## [1] &quot;Женский&quot; &quot;Мужской&quot;
+## 
+## $marital
+## [1] &quot;Женат&quot;    &quot;Одинокий&quot;</code></pre>
+<p>Видим, что лишние символы удалены и можно продолжать работу.</p>
+</div>
+<div id="ch2.2.5" class="section level3" number="2.2.5">
+<h3><span class="header-section-number">2.2.5</span> Обработка дублирующихся наблюдений</h3>
+<p>Очень часто при подготовке выборки допускаются ошибки, в частности, в набор данных несколько раз может попасть одно и то же наблюдение. Давайте убедимся, что наш набор не содержит дублирующихся наблюдений (строк). Для этого мы воспользуемся функцией <code>duplicated()</code>, которая выведет все повторяющиеся наблюдения:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="ch2.html#cb28-1"></a>dt[<span class="kw">duplicated</span>(dt), ]</span></code></pre></div>
+<pre><code>##    longdist local int_disc   billtype  pay  gender  marital  income agecat churn
+## 1:       &lt;2    &lt;8      Нет  Бюджетный   CC Женский    Женат 32118.4    71+     1
+## 2:       &lt;2    &lt;8       Да Бесплатный   CC Женский Одинокий 18831.1  46-58     1
+## 3:      21+ 21-35      Нет  Бюджетный   CC Мужской    Женат 84269.0  31-45     0
+## 4:     9-14   56+      Нет  Бюджетный   CC Мужской Одинокий 54643.3  31-45     0
+## 5:      2-8 21-35      Нет Бесплатный Auto Женский    Женат 92353.3  46-58     0
+## 6:    15-20 21-35      Нет Бесплатный   CC Женский    Женат 87404.6  46-58     1
+## 7:      21+  8-20      Нет Бесплатный   CC Женский Одинокий 75639.8  31-45     0</code></pre>
+<p>Теперь с помощью функции unique оставим в нашем наборе только уникальные, недублирующиеся наблюдения:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="ch2.html#cb30-1"></a>dt &lt;-<span class="st"> </span><span class="kw">unique</span>(dt)</span>
+<span id="cb30-2"><a href="ch2.html#cb30-2"></a></span>
+<span id="cb30-3"><a href="ch2.html#cb30-3"></a>dt[, .N] <span class="co"># количество строк в итоговой таблице</span></span></code></pre></div>
+<pre><code>## [1] 4424</code></pre>
+</div>
+<div id="ch2.2.6" class="section level3" number="2.2.6">
+<h3><span class="header-section-number">2.2.6</span> Изменение типов переменных</h3>
+<p>Теперь посмотрим, как выглядят наши переменные:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="ch2.html#cb32-1"></a><span class="kw">str</span>(dt)</span></code></pre></div>
+<pre><code>## Classes &#39;data.table&#39; and &#39;data.frame&#39;:	4424 obs. of  10 variables:
+##  $ longdist: chr  &quot;&lt;2&quot; NA &quot;&lt;2&quot; &quot;&lt;2&quot; ...
+##  $ local   : chr  &quot;&lt;8&quot; &quot;&lt;8&quot; &quot;&lt;8&quot; &quot;&lt;8&quot; ...
+##  $ int_disc: chr  &quot;Нет&quot; &quot;Нет&quot; &quot;Нет&quot; NA ...
+##  $ billtype: chr  &quot;Бюджетный&quot; &quot;Бесплатный&quot; NA &quot;Бесплатный&quot; ...
+##  $ pay     : chr  &quot;CC&quot; &quot;CC&quot; &quot;CC&quot; &quot;CH&quot; ...
+##  $ gender  : chr  &quot;Мужской&quot; &quot;Мужской&quot; &quot;Мужской&quot; &quot;Мужской&quot; ...
+##  $ marital : chr  &quot;Женат&quot; &quot;Женат&quot; &quot;Женат&quot; &quot;Одинокий&quot; ...
+##  $ income  : num  77680 37112 NA NA 16830 ...
+##  $ agecat  : chr  &quot;&lt;31&quot; &quot;&lt;31&quot; NA &quot;&lt;31&quot; ...
+##  $ churn   : int  1 1 1 0 1 1 1 1 1 1 ...
+##  - attr(*, &quot;.internal.selfref&quot;)=&lt;externalptr&gt;</code></pre>
+<p>В сводке мы видим, что количественная переменная <code>income</code> правильно записана как вещественный вектор, потому что ее значения являются числами с плавающей точкой. Номинальные переменные <code>int_disc</code>, <code>billtype</code>, <code>pay</code>, <code>gender</code>, <code>marital</code> следует превратить в факторы, для представления их строковых значений будут использоваться неупорядоченные числовые коды:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="ch2.html#cb34-1"></a>fact_cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;int_disc&quot;</span>, <span class="st">&quot;billtype&quot;</span>, <span class="st">&quot;pay&quot;</span>, <span class="st">&quot;gender&quot;</span>, <span class="st">&quot;marital&quot;</span>)</span>
+<span id="cb34-2"><a href="ch2.html#cb34-2"></a>dt[, (fact_cols) <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw">lapply</span>(.SD, as.factor), .SDcols =<span class="st"> </span>fact_cols]</span></code></pre></div>
+<p>Переменные <code>longdist</code>, <code>local</code> и <code>agecat</code> представляют собой упорядоченные факторы, поэтому для них дополнительно нужно указать <code>ordered = TRUE</code> и задать вектор символьных меток (категорий), выстроенных по порядку, при помощи параметра <code>labels</code>:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="ch2.html#cb35-1"></a>dt[, </span>
+<span id="cb35-2"><a href="ch2.html#cb35-2"></a>   longdist <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw">factor</span>(longdist, </span>
+<span id="cb35-3"><a href="ch2.html#cb35-3"></a>                      <span class="dt">ordered =</span> <span class="ot">TRUE</span>, </span>
+<span id="cb35-4"><a href="ch2.html#cb35-4"></a>                      <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;&lt;2&quot;</span>, <span class="st">&quot;2-8&quot;</span>, <span class="st">&quot;9-14&quot;</span>, <span class="st">&quot;15-20&quot;</span>, <span class="st">&quot;21+&quot;</span>))</span>
+<span id="cb35-5"><a href="ch2.html#cb35-5"></a>   ]</span>
+<span id="cb35-6"><a href="ch2.html#cb35-6"></a></span>
+<span id="cb35-7"><a href="ch2.html#cb35-7"></a>dt[, </span>
+<span id="cb35-8"><a href="ch2.html#cb35-8"></a>   local <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw">factor</span>(local, </span>
+<span id="cb35-9"><a href="ch2.html#cb35-9"></a>                   <span class="dt">ordered =</span> <span class="ot">TRUE</span>, </span>
+<span id="cb35-10"><a href="ch2.html#cb35-10"></a>                   <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;&lt;8&quot;</span>, <span class="st">&quot;8-20&quot;</span>, <span class="st">&quot;21-35&quot;</span>, <span class="st">&quot;36-55&quot;</span>, <span class="st">&quot;56+&quot;</span>))</span>
+<span id="cb35-11"><a href="ch2.html#cb35-11"></a>   ]</span>
+<span id="cb35-12"><a href="ch2.html#cb35-12"></a></span>
+<span id="cb35-13"><a href="ch2.html#cb35-13"></a>dt[, </span>
+<span id="cb35-14"><a href="ch2.html#cb35-14"></a>   agecat <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw">factor</span>(agecat, </span>
+<span id="cb35-15"><a href="ch2.html#cb35-15"></a>                    <span class="dt">ordered =</span> <span class="ot">TRUE</span>, </span>
+<span id="cb35-16"><a href="ch2.html#cb35-16"></a>                    <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">&quot;&lt;31&quot;</span>, <span class="st">&quot;31-45&quot;</span>, <span class="st">&quot;46-58&quot;</span>, <span class="st">&quot;59-70&quot;</span>, <span class="st">&quot;71+&quot;</span>))</span>
+<span id="cb35-17"><a href="ch2.html#cb35-17"></a>   ]</span></code></pre></div>
+<p>Номинальная зависимая переменная <code>churn</code> неправильно (в контексте нашей задачи) записана как целочисленный вектор, поскольку она представлена целочисленными значениями. Если мы будем строить модель с такой зависимой переменной, будет возвращена ошибка, так как <code>CHAID</code> работает только с номинальной зависимой переменной, представленной в виде фактора, а в других пакетах R (например, <code>rpart</code> и <code>randomForest</code>) вместо задачи классификации будет решаться задача регрессии. Присвоим переменной <code>churn</code> правильный тип <code>factor</code> с уровнями <code>"Остается"</code> (<code>0</code>) и <code>"Уходит"</code> (<code>1</code>):</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="ch2.html#cb36-1"></a>dt[, </span>
+<span id="cb36-2"><a href="ch2.html#cb36-2"></a>  churn <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw">factor</span>(churn, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;Остается&quot;</span>, <span class="st">&quot;Уходит&quot;</span>))</span>
+<span id="cb36-3"><a href="ch2.html#cb36-3"></a>  ]</span></code></pre></div>
+<p>После выполнения необходимых преобразований набор данных выглядит следующим образом:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="ch2.html#cb37-1"></a><span class="kw">str</span>(dt)</span></code></pre></div>
+<pre><code>## Classes &#39;data.table&#39; and &#39;data.frame&#39;:	4424 obs. of  10 variables:
+##  $ longdist: Ord.factor w/ 5 levels &quot;&lt;2&quot;&lt;&quot;2-8&quot;&lt;&quot;9-14&quot;&lt;..: 1 NA 1 1 1 NA NA 1 1 1 ...
+##  $ local   : Ord.factor w/ 5 levels &quot;&lt;8&quot;&lt;&quot;8-20&quot;&lt;&quot;21-35&quot;&lt;..: 1 1 1 1 NA 1 1 1 1 1 ...
+##  $ int_disc: Factor w/ 2 levels &quot;Да&quot;,&quot;Нет&quot;: 2 2 2 NA 2 2 2 2 1 2 ...
+##  $ billtype: Factor w/ 2 levels &quot;Бесплатный&quot;,&quot;Бюджетный&quot;: 2 1 NA 1 1 1 2 1 NA 1 ...
+##  $ pay     : Factor w/ 4 levels &quot;Auto&quot;,&quot;CC&quot;,&quot;CD&quot;,..: 2 2 2 4 1 NA NA 1 4 2 ...
+##  $ gender  : Factor w/ 2 levels &quot;Женский&quot;,&quot;Мужской&quot;: 2 2 2 2 NA 1 2 2 2 2 ...
+##  $ marital : Factor w/ 2 levels &quot;Женат&quot;,&quot;Одинокий&quot;: 1 1 1 2 2 2 1 NA 2 1 ...
+##  $ income  : num  77680 37112 NA NA 16830 ...
+##  $ agecat  : Ord.factor w/ 5 levels &quot;&lt;31&quot;&lt;&quot;31-45&quot;&lt;..: 1 1 NA 1 1 1 1 1 1 1 ...
+##  $ churn   : Factor w/ 2 levels &quot;Остается&quot;,&quot;Уходит&quot;: 2 2 2 1 2 2 2 2 2 2 ...
+##  - attr(*, &quot;.internal.selfref&quot;)=&lt;externalptr&gt;</code></pre>
+</div>
+<div id="ch2.2.7" class="section level3" number="2.2.7">
+<h3><span class="header-section-number">2.2.7</span> Обработка редких категорий</h3>
+<p>Теперь обратимся к переменной <code>pay</code> в отчете, сгенерированном функцией <code>Hmisc::describe()</code> . Мы видим, что категория <code>CD</code> встречается лишь 2 раза. Распределение значений этой переменной можно также вывести с помощью функции <code>summary()</code>:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="ch2.html#cb39-1"></a><span class="kw">summary</span>(dt<span class="op">$</span>pay)</span></code></pre></div>
+<pre><code>## Auto   CC   CD   CH NA&#39;s 
+##  889 2554    2  977    2</code></pre>
+<p>Такие редкие категории, как категория <code>CD</code>, являются источником шума в данных, который может негативно повлиять на качество модели. Кроме того, когда мы разобьем наш набор данных на обучающую и контрольную выборки, может оказаться, что данная категория отсутствует в обучающей выборке, но присутствует в контрольной выборке. Это вызовет проблемы при моделировании.</p>
+<p>Регрессионная модель, встретив в новых данных наблюдение с неизвестной категорией предиктора, не сможет вычислить прогноз, потому что необходимый для прогноза регрессионный коэффициент по этой категории предиктора будет отсутствовать. Допустим, у нас есть новые данные, и одно из наблюдений имеет по переменной <code>pay</code> категорию <code>CD</code>, которой не было в обучающей выборке. Тогда функция <code>predict()</code>, применяющая модель логистической регрессии к новым данным, вернет ошибку <em>«factor pay has new level(s)»</em>. Модель дерева проверит соответствие условиям, записанным в правилах классификации, и попытается выдать прогноз. Если соответствие не будет найдено, функция <code>predict()</code> пакета <code>CHAID</code> или <code>rpart</code> вернет ошибку <em>«factor pay has new level(s)»</em>, а функция <code>predict()</code> пакета <code>randomForest</code> – ошибку <em>«new factor levels not present in the training data»</em>. Поэтому на этапе предварительной обработки должна осуществляться обработка редких категорий.</p>
+<p>В пакетах <code>ranger</code> и <code>h2o</code>, специально разработанных для работы с высокоразмерными данными (включая категориальные предикторы с высокой кардинальностью), редкие обычно категории не представляют проблемы.
+Обработка редких категорий выполняется либо до разбиения на обучающую и контрольную выборки, либо после него в зависимости от причин, обусловивших появление таких категорий. Если переменная содержит 2-3 редких категорий небольшой частоты, скорее всего, такие категории случайны и могли быть обусловлены ошибками ввода. В нашем примере у переменной <code>pay</code> есть категория <code>CC</code>, встречающаяся 2554 раза, и категория <code>CD</code>, которая встречается 2 раза, поэтому, вероятно, речь идет об ошибке ввода. В таком случае эти категории, как правило, объединяют с самой часто встречающейся категорией (или объединяют в новую категорию). Это можно сделать как до разбиения на обучение и контроль, так и после него. Если переменная содержит множество категорий небольшой частоты, нам необходимо задать порог укрупнения – минимальное количество наблюдений в категории, ниже которого категория объявляется редкой. Поэтому для объективности решение о выборе такого порога должно приниматься уже после разбиения на обучающую и контрольную выборки. В противном случае получится, что решение о выборе порога мы принимали с учетом информации «из будущего». Такие редкие категории часто либо объединяют в одну отдельную категорию, либо объединяют с уже существующими категориями по результатам, полученным с помощью метода CHAID.</p>
+<p>Итак, объединим редкую категорию <code>CD</code> с самой часто встречающейся категорией <code>СС</code>. Для этого воспользуемся функцией <code>recode()</code> пакета <code>car</code>. Удобство работы с ней заключается в том, что перед выполнением операций с уровнями не нужно преобразовывать фактор в символьный вектор, а после выполнения операций обратно преобразовывать символьный вектор в фактор.</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="ch2.html#cb41-1"></a>dt[, pay <span class="op">:</span><span class="er">=</span><span class="st"> </span>car<span class="op">::</span><span class="kw">recode</span>(pay, <span class="st">&quot;&#39;CD&#39;=&#39;CC&#39;&quot;</span>)]</span></code></pre></div>
+<p><em>СОВЕТ</em></p>
+<p>С помощью функции <code>car::recode()</code> очень удобно выполнять перегруппировку категорий. Допустим, у нас есть переменная <code>var</code> с 5 категориями: <code>SCH</code>, <code>UGR</code>, <code>GRD</code>, <code>PGR</code>, <code>ACD</code>. Мы можем сформировать переменную с 3 категориями: <code>SCH</code>, <code>PGR</code> и <code>ACD</code>:</p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="ch2.html#cb42-1"></a>var &lt;-<span class="st"> </span><span class="kw">recode</span>(var, </span>
+<span id="cb42-2"><a href="ch2.html#cb42-2"></a>              <span class="st">&quot;&#39;SCH&#39;=&#39;SCH&#39;; </span></span>
+<span id="cb42-3"><a href="ch2.html#cb42-3"></a><span class="st">               &#39;UGR&#39;=&#39;SCH&#39;; </span></span>
+<span id="cb42-4"><a href="ch2.html#cb42-4"></a><span class="st">               &#39;GRD&#39;=&#39;PGR&#39;; </span></span>
+<span id="cb42-5"><a href="ch2.html#cb42-5"></a><span class="st">               &#39;PGR&#39;=&#39;PGR&#39;; </span></span>
+<span id="cb42-6"><a href="ch2.html#cb42-6"></a><span class="st">               &#39;ACD&#39;=&#39;ACD&#39;&quot;</span>)</span></code></pre></div>
+<p>Снова выводим информацию о распределении значений переменной <code>pay</code>:</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="ch2.html#cb43-1"></a><span class="kw">summary</span>(dt<span class="op">$</span>pay)</span></code></pre></div>
+<pre><code>## Auto   CC   CH NA&#39;s 
+##  889 2556  977    2</code></pre>
+<p>Видим, что теперь категория <code>CD</code> отсутствует, т.к. она была объединена с категорией <code>CC</code>.</p>
+<p><em>СОВЕТ</em></p>
+<p>Укрупнение редких категорий часто позволяет немного повысить качество модели. В ряде случаев более оптимальной стратегией может оказаться не объединение редко встречающихся категорий с наиболее часто встречающейся, а выделение редких категорий в отдельную группу. Например, у нас есть переменная <code>var</code>. и у нее редкими являются категории 5, 7, 9 и 12. Мы можем записать эти редкие категории в отдельную категорию <code>OTHER</code>:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="ch2.html#cb45-1"></a>var &lt;-<span class="st"> </span><span class="kw">recode</span>(var, <span class="st">&quot;c(&#39;5&#39;, &#39;7&#39;,&#39;9&#39;, &#39;12&#39;) = &#39;OTHER&#39;&quot;</span>)</span></code></pre></div>
+<p>Выведем информацию обо всех переменных в нашей таблице после всех выполненных преобразований. На этот раз воспользуемся функцией <code>skim()</code> из пакета <code>skimr</code> (подробнее об этом пакете можно прочитать <a href="https://ropensci.org/blog/2019/10/29/skimrv2/">здесь</a>):</p>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="ch2.html#cb46-1"></a><span class="co"># devtools::install_github(&quot;ropensci/skimr&quot;)</span></span>
+<span id="cb46-2"><a href="ch2.html#cb46-2"></a></span>
+<span id="cb46-3"><a href="ch2.html#cb46-3"></a>skimr<span class="op">::</span><span class="kw">skim</span>(dt)</span></code></pre></div>
+<table>
+<caption><span id="tab:unnamed-chunk-31">Table 2.1: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">dt</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">4424</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">10</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">factor</td>
+<td align="left">9</td>
+</tr>
+<tr class="odd">
+<td align="left">numeric</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">longdist</td>
+<td align="right">3</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">15-: 1054, 9-1: 993, 2-8: 867, 21+: 771</td>
+</tr>
+<tr class="even">
+<td align="left">local</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">21-: 1444, 8-2: 763, 56+: 740, &lt;8: 738</td>
+</tr>
+<tr class="odd">
+<td align="left">int_disc</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Нет: 3047, Да: 1376</td>
+</tr>
+<tr class="even">
+<td align="left">billtype</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Бюд: 2241, Бес: 2181</td>
+</tr>
+<tr class="odd">
+<td align="left">pay</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">3</td>
+<td align="left">CC: 2556, CH: 977, Aut: 889</td>
+</tr>
+<tr class="even">
+<td align="left">gender</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Жен: 2239, Муж: 2184</td>
+</tr>
+<tr class="odd">
+<td align="left">marital</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Жен: 2624, Оди: 1799</td>
+</tr>
+<tr class="even">
+<td align="left">agecat</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">31-: 1303, 46-: 908, &lt;31: 755, 71+: 740</td>
+</tr>
+<tr class="odd">
+<td align="left">churn</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Ост: 2492, Ухо: 1932</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">income</td>
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">50297.04</td>
+<td align="right">28440.28</td>
+<td align="right">110.28</td>
+<td align="right">25445.6</td>
+<td align="right">50290.7</td>
+<td align="right">75004.5</td>
+<td align="right">99832.9</td>
+<td align="left">▇▇▇▇▇</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="ch2.2.8" class="section level3" number="2.2.8">
+<h3><span class="header-section-number">2.2.8</span> Однократное случайное разбиение набора данных на обучающую и контрольную выборки для проверки модели</h3>
+<p>В прогнозном моделировании нам важно построить модель на обучающих данных, а затем получить точные прогнозы для новых, еще не встречавшихся данных, состоящих из тех же самых предикторов, что и использованный нами обучающий набор. Если модель может выдавать точные прогнозы на ранее не встречавшихся данных, можно сказать, что модель обладает способностью <em>обобщать</em> результат на новые данные. Нам требуется построить модель с максимальной <em>обобщающей способностью</em> (<em>generalization</em>).</p>
+<p>Обычно цель специалиста по машинному обучению сводится к тому, чтобы модель давала точные прогнозы на обучающем наборе. Если обучающий набор и новые данные имеют много общего между собой, можно ожидать, что модель будет точно прогнозировать новые данные. Однако в ряде случаев на новых данных модель работает существенно хуже. Почему так происходит?</p>
+<p>Проблема заключается в том, что на этапе подготовки данных часто отсутствует априорная информация о полезности тех или иных предикторов. Избыточное включение предикторов, не несущих новой информации, ведет к тому, что модель становится слишком сложной. Она слишком точно подстраивается под особенности обучающего набора, улавливает не только фактические взаимосвязи, но и случайные возмущения обучающих данных. По сути такая модель восстанавливает не только искомую зависимость, но и выполняет подгонку конкретных наблюдений. В итоге мы получаем модель, которая идеально работает на обучающем наборе, но плохо обобщает результат на новые данные, поскольку описывает случайный шум в данных, который не имеет ничего общего с истинной формой связи между зависимой переменной и предикторами. Такую ситуацию называют <em>переобучением</em> (<em>overfitting</em>). С другой стороны, включение недостаточного числа полезных признаков, наоборот, приводит к тому, что модель не может в достаточной мере уловить фактические зависимости, и качество модели даже на обучающей выборке остается довольно низким. Такую ситуацию называют <em>недообучением</em> (<em>underfitting</em>).</p>
+<p>Для борьбы с описанными ситуациями необходимо настраивать сложность модели и проверять обобщающую способность, используя контрольную выборку. Существует оптимальная точка, которая позволяет получить наилучшую обобщающую способность. Собственно это и есть модель, которую нам нужно найти.</p>
+<p>Выбор сложности модели – это компромисс между смещением и дисперсией. Недостаточно сложная модель не может быть достаточно гибкой, и это может привести к недообучению, пропуску взаимосвязей в данных (модель характеризуется высоким смещением). Неопытный исследователь может предположить, что наиболее сложная модель должна всегда лучше предсказывать, но это не так. Слишком сложная модель является слишком гибкой, что ведет к переобучению, учету случайного шума выборки (модель характеризуется высокой дисперсией). У моделей с низким смещением высока дисперсия, и наоборот. В современных методах машинного обучения мы чаще всего регулируем сложность через отбор признаков: обращение коэффициентов точно в ноль с помощью методов регуляризации в регрессионных моделях, случайный отбор признаков и прунинг в случайном лесе и градиентном бустинге, <a href="https://habr.com/ru/company/wunderfund/blog/330814/">дропаут</a> в нейронных сетях.</p>
+<p>Наиболее распространенными методами проверки являются: однократное случайное разбиение набора данных на обучающую и контрольную выборки; однократное случайное разбиение набора данных на обучающую, проверочную/валидационную и контрольную/тестовую выборки; различные варианты перекрестной проверки (кросс-валидация), обычно также с резервированием тестовой выборки для итоговой оценки качества.</p>
+<p>Мы начнем с однократного случайного разбиения на обучающую и контрольную выборки. При таком способе проверки модель строится на обучающей выборке, а ее качество проверяется на контрольной выборке (рис. 2.9). Очевидно, что описанный подход является корректным только в том случае, если на основании оценки качества на контрольной выборке не производится выбор лучшей модели из множества альтернатив. В противном случае можно получить завышенные оценки качества, т.е. может произойти косвенное переобучение на контрольную выборку.</p>
+<p><img src="figures/2.9.PNG" /></p>
+<p><em>Риc. 2.9. Схема разделения выборки на обучающую и контрольную</em></p>
+<p>Давайте случайным образом разобьем нашу таблицу <code>dt</code> на обучающий набор данных <code>development</code> и контрольный набор данных <code>holdout</code>. Примерно 70% наблюдений исходного набора попадут в обучающую выборку, а 30% наблюдений – в контрольную выборку. Поскольку разбиение осуществляется случайным образом, необходимо задать стартовое значение генератора случайных чисел для воспроизводимости полученных результатов:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="ch2.html#cb47-1"></a><span class="kw">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb47-2"><a href="ch2.html#cb47-2"></a>train_rows &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="dv">1</span><span class="op">:</span>dt[, .N], dt[, .N] <span class="op">*</span><span class="st"> </span><span class="fl">0.7</span>)</span>
+<span id="cb47-3"><a href="ch2.html#cb47-3"></a>development &lt;-<span class="st"> </span>dt[train_rows, ]</span>
+<span id="cb47-4"><a href="ch2.html#cb47-4"></a>holdout &lt;-<span class="st"> </span>dt[<span class="op">-</span>train_rows, ]</span>
+<span id="cb47-5"><a href="ch2.html#cb47-5"></a></span>
+<span id="cb47-6"><a href="ch2.html#cb47-6"></a><span class="kw">str</span>(development)</span></code></pre></div>
+<pre><code>## Classes &#39;data.table&#39; and &#39;data.frame&#39;:	3096 obs. of  10 variables:
+##  $ longdist: Ord.factor w/ 5 levels &quot;&lt;2&quot;&lt;&quot;2-8&quot;&lt;&quot;9-14&quot;&lt;..: 4 4 2 4 5 5 5 3 1 5 ...
+##  $ local   : Ord.factor w/ 5 levels &quot;&lt;8&quot;&lt;&quot;8-20&quot;&lt;&quot;21-35&quot;&lt;..: 4 3 4 2 2 1 3 3 1 3 ...
+##  $ int_disc: Factor w/ 2 levels &quot;Да&quot;,&quot;Нет&quot;: 2 2 1 2 2 2 2 1 1 2 ...
+##  $ billtype: Factor w/ 2 levels &quot;Бесплатный&quot;,&quot;Бюджетный&quot;: 1 1 1 1 2 1 2 2 1 2 ...
+##  $ pay     : Factor w/ 3 levels &quot;Auto&quot;,&quot;CC&quot;,&quot;CH&quot;: 2 2 1 2 3 2 2 2 2 3 ...
+##  $ gender  : Factor w/ 2 levels &quot;Женский&quot;,&quot;Мужской&quot;: 2 1 2 1 1 1 2 2 2 1 ...
+##  $ marital : Factor w/ 2 levels &quot;Женат&quot;,&quot;Одинокий&quot;: 1 1 1 1 1 1 2 1 1 2 ...
+##  $ income  : num  11890 50291 68828 85048 1415 ...
+##  $ agecat  : Ord.factor w/ 5 levels &quot;&lt;31&quot;&lt;&quot;31-45&quot;&lt;..: 3 2 4 3 5 1 3 1 5 1 ...
+##  $ churn   : Factor w/ 2 levels &quot;Остается&quot;,&quot;Уходит&quot;: 1 1 1 2 2 1 1 1 1 1 ...
+##  - attr(*, &quot;.internal.selfref&quot;)=&lt;externalptr&gt;</code></pre>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="ch2.html#cb49-1"></a><span class="kw">str</span>(holdout)</span></code></pre></div>
+<pre><code>## Classes &#39;data.table&#39; and &#39;data.frame&#39;:	1328 obs. of  10 variables:
+##  $ longdist: Ord.factor w/ 5 levels &quot;&lt;2&quot;&lt;&quot;2-8&quot;&lt;&quot;9-14&quot;&lt;..: 1 NA 1 1 1 1 1 1 1 1 ...
+##  $ local   : Ord.factor w/ 5 levels &quot;&lt;8&quot;&lt;&quot;8-20&quot;&lt;&quot;21-35&quot;&lt;..: NA 1 1 1 1 1 1 1 1 1 ...
+##  $ int_disc: Factor w/ 2 levels &quot;Да&quot;,&quot;Нет&quot;: 2 2 2 2 2 2 2 2 1 2 ...
+##  $ billtype: Factor w/ 2 levels &quot;Бесплатный&quot;,&quot;Бюджетный&quot;: 1 1 1 2 1 1 2 2 2 1 ...
+##  $ pay     : Factor w/ 3 levels &quot;Auto&quot;,&quot;CC&quot;,&quot;CH&quot;: 1 NA 3 2 2 2 2 2 2 1 ...
+##  $ gender  : Factor w/ 2 levels &quot;Женский&quot;,&quot;Мужской&quot;: NA 1 2 1 1 2 2 2 1 2 ...
+##  $ marital : Factor w/ 2 levels &quot;Женат&quot;,&quot;Одинокий&quot;: 2 2 2 1 2 1 1 1 1 2 ...
+##  $ income  : num  16830 57273 18831 34806 47212 ...
+##  $ agecat  : Ord.factor w/ 5 levels &quot;&lt;31&quot;&lt;&quot;31-45&quot;&lt;..: 1 1 1 1 2 2 3 3 3 3 ...
+##  $ churn   : Factor w/ 2 levels &quot;Остается&quot;,&quot;Уходит&quot;: 2 2 1 2 2 2 2 2 2 1 ...
+##  - attr(*, &quot;.internal.selfref&quot;)=&lt;externalptr&gt;</code></pre>
+<p>Мы могли бы уже начать строить модель, а потом проверять ее, но сперва нужно ответить на вопрос, достаточен ли объем обучающей и контрольной выборки для построения и проверки модели?</p>
+<p>В практике банковского скоринга для ответа на поставленный вопрос часто используют правило «Number of Events Per Variable» (количество событий на одну переменную, NEPV), сформулированное Фрэнком Харреллом. Для задачи классификации оно связывает минимальный объем выборки с количеством «событий» – наблюдений в миноритарной (наименьшей по размеру) категории зависимой переменной и количеством предикторов, поданным на вход модели. Согласно этому правилу, необходимо взять количество наблюдений в обучающей выборке, относящихся к миноритарной категории зависимой переменной (в кредитном скоринге это «плохие» заемщики). Это число наблюдений нужно разделить на количество заданных предикторов. Для регрессионной модели на один предиктор должно приходиться не менее 20 событий, при построении дерева решений CHAID<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a> на один предиктор должно приходиться не менее 50 событий, а для модели случайного леса, градиентного бустинга, SVM и нейронной сети на одну независимую переменную должно приходиться не менее 200 событий. Для задачи регрессии мы просто берем количество наблюдений и делим на количество предикторов и для регрессионной модели на одну независимую переменную должно приходиться не менее 20 наблюдений, для дерева решений CHAID (в тех случаях, когда реализация алгоритма позволяет решать задачу регрессии) на один предиктор должно приходиться не менее 50 наблюдений, для случайного леса и других сложных моделей на один предиктор должно приходиться не менее 200 наблюдений.</p>
 </div>
 </div>
 </div>
@@ -446,6 +952,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <hr />
 <ol start="6">
 <li id="fn6"><p>Если предиктор имеет одну категорию, он исключается из анализа. Если предиктор имеет две категории, происходит переход к шагу 3.<a href="ch2.html#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p>По мнению Фрэнка Харрелла, для дерева рещений CART правило NEPV невозможно сформулировать из-за высокой нестабильности метода и склонности к переобучению.<a href="ch2.html#fnref7" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
             </section>
